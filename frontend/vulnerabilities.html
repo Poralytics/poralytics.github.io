@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vulnerabilities - NEXUS</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-primary: #0a0e27;
+  --bg-card: #1a1f3a;
+  --accent-blue: #00d4ff;
+  --accent-purple: #8b5cf6;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --border: rgba(148, 163, 184, 0.1);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: linear-gradient(135deg, #0a0e27 0%, #111632 50%, #0a0e27 100%);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+
+.sidebar {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+  padding: 2rem 0;
+  position: fixed;
+  width: 280px;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.logo {
+  padding: 0 1.5rem;
+  margin-bottom: 3rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.logo-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-section { margin-bottom: 2rem; }
+
+.nav-title {
+  padding: 0 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+}
+
+.nav-item {
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.3s;
+  cursor: pointer;
+  position: relative;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple));
+  transition: height 0.3s;
+}
+
+.nav-item:hover::before, .nav-item.active::before { height: 70%; }
+.nav-item:hover { background: rgba(0, 212, 255, 0.05); color: var(--text-primary); }
+.nav-item.active { background: rgba(0, 212, 255, 0.1); color: var(--accent-blue); }
+.nav-item i { width: 24px; text-align: center; }
+
+.main {
+  margin-left: 280px;
+  padding: 2rem;
+  animation: fadeInUp 0.8s ease;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-left h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(90deg, var(--text-primary), var(--accent-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: white;
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3);
+}
+
+.btn-primary:hover { transform: translateY(-2px); }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon.critical { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+.stat-icon.high { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+.stat-icon.medium { background: rgba(0, 212, 255, 0.1); color: var(--accent-blue); }
+.stat-icon.low { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+
+.stat-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.vulnerabilities-container {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.container-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.container-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filters {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.filter-select {
+  padding: 0.625rem 1rem;
+  background: rgba(26, 31, 58, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.vuln-item {
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 4px solid;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  transition: all 0.3s;
+}
+
+.vuln-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateX(4px);
+}
+
+.vuln-item.critical { border-color: var(--danger); }
+.vuln-item.high { border-color: var(--warning); }
+.vuln-item.medium { border-color: var(--accent-blue); }
+.vuln-item.low { border-color: var(--success); }
+
+.vuln-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.vuln-info { flex: 1; }
+
+.vuln-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.severity-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.severity-critical { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+.severity-high { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+.severity-medium { background: rgba(0, 212, 255, 0.15); color: var(--accent-blue); }
+.severity-low { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+
+.vuln-meta {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.vuln-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vuln-description {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.vuln-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.btn-secondary {
+  background: rgba(26, 31, 58, 0.8);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--danger), #dc2626);
+  color: white;
+}
+
+.cvss-score {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.cvss-score.critical { color: var(--danger); }
+.cvss-score.high { color: var(--warning); }
+.cvss-score.medium { color: var(--accent-blue); }
+.cvss-score.low { color: var(--success); }
+
+.vuln-details {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  display: none;
+}
+
+.vuln-details.active { display: block; }
+
+.detail-section {
+  margin-bottom: 1rem;
+}
+
+.detail-section h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.detail-section p, .detail-section ul {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.detail-section ul {
+  padding-left: 1.5rem;
+}
+
+.detail-section li {
+  margin-bottom: 0.25rem;
+}
+
+.code-block {
+  background: rgba(10, 14, 39, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: var(--accent-blue);
+  overflow-x: auto;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+      <span class="logo-text">NEXUS</span>
+    </div>
+    
+    <nav>
+      <div class="nav-section">
+        <div class="nav-title">Overview</div>
+        <a href="dashboard-ultimate.html" class="nav-item">
+          <i class="fas fa-th-large"></i>
+          <span>Dashboard</span>
+        </a>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-title">Security</div>
+        <a href="#" class="nav-item">
+          <i class="fas fa-server"></i>
+          <span>Assets</span>
+        </a>
+        <a href="#" class="nav-item active">
+          <i class="fas fa-bug"></i>
+          <span>Vulnerabilities</span>
+        </a>
+        <a href="scans.html" class="nav-item">
+          <i class="fas fa-search"></i>
+          <span>Security Scans</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <div class="header-left">
+        <h1>Vulnerabilities</h1>
+        <p>Manage and remediate security vulnerabilities</p>
+      </div>
+      <div>
+        <button class="btn btn-primary" onclick="exportVulnerabilities()">
+          <i class="fas fa-download"></i>
+          Export Report
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Critical</span>
+          <div class="stat-icon critical">
+            <i class="fas fa-exclamation-circle"></i>
+          </div>
+        </div>
+        <div class="stat-value">8</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">High</span>
+          <div class="stat-icon high">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+        </div>
+        <div class="stat-value">12</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Medium</span>
+          <div class="stat-icon medium">
+            <i class="fas fa-info-circle"></i>
+          </div>
+        </div>
+        <div class="stat-value">24</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Low</span>
+          <div class="stat-icon low">
+            <i class="fas fa-check-circle"></i>
+          </div>
+        </div>
+        <div class="stat-value">36</div>
+      </div>
+    </div>
+
+    <!-- Vulnerabilities List -->
+    <div class="vulnerabilities-container">
+      <div class="container-header">
+        <div class="container-title">
+          <i class="fas fa-list"></i>
+          All Vulnerabilities
+        </div>
+        <div class="filters">
+          <select class="filter-select">
+            <option value="all">All Severity</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+          <select class="filter-select">
+            <option value="all">All Assets</option>
+            <option value="api">API</option>
+            <option value="web">Web App</option>
+            <option value="website">Website</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Vulnerability 1 -->
+      <div class="vuln-item critical">
+        <div class="vuln-header">
+          <div class="vuln-info">
+            <div class="vuln-title">
+              SQL Injection Vulnerability
+              <span class="severity-badge severity-critical">CRITICAL</span>
+            </div>
+            <div class="vuln-meta">
+              <span><i class="fas fa-server"></i> api.company.com</span>
+              <span><i class="fas fa-clock"></i> Discovered 2 hours ago</span>
+              <span><i class="fas fa-user"></i> Auto-detected</span>
+              <span><i class="fas fa-layer-group"></i> Database Layer</span>
+            </div>
+            <p class="vuln-description">
+              A SQL injection vulnerability has been detected in the login endpoint. Attackers can bypass authentication and access sensitive database information by injecting malicious SQL code through the username parameter.
+            </p>
+          </div>
+          <div class="cvss-score critical">
+            9.8
+            <div style="font-size: 0.7rem; font-weight: 500; margin-top: 0.25rem;">CVSS</div>
+          </div>
+        </div>
+        <div class="vuln-actions">
+          <button class="btn btn-danger btn-sm" onclick="remediate(1)">
+            <i class="fas fa-tools"></i>
+            Remediate Now
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="toggleDetails(1)">
+            <i class="fas fa-chevron-down"></i>
+            View Details
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="ignore(1)">
+            <i class="fas fa-eye-slash"></i>
+            Ignore
+          </button>
+        </div>
+
+        <div class="vuln-details" id="details-1">
+          <div class="detail-section">
+            <h4><i class="fas fa-info-circle"></i> Description</h4>
+            <p>SQL injection occurs when user input is incorrectly sanitized, allowing attackers to execute arbitrary SQL commands. This can lead to unauthorized data access, modification, or deletion.</p>
+          </div>
+          
+          <div class="detail-section">
+            <h4><i class="fas fa-map-marker-alt"></i> Location</h4>
+            <div class="code-block">
+              File: /api/auth/login.js<br>
+              Line: 42<br>
+              Function: authenticateUser()
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4><i class="fas fa-code"></i> Vulnerable Code</h4>
+            <div class="code-block">
+              const query = `SELECT * FROM users WHERE username = '${username}'`;
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4><i class="fas fa-shield-alt"></i> Remediation</h4>
+            <ul>
+              <li>Use parameterized queries or prepared statements</li>
+              <li>Implement input validation and sanitization</li>
+              <li>Use ORM frameworks that handle SQL escaping</li>
+              <li>Apply principle of least privilege for database accounts</li>
+            </ul>
+          </div>
+
+          <div class="detail-section">
+            <h4><i class="fas fa-link"></i> References</h4>
+            <ul>
+              <li>CWE-89: SQL Injection</li>
+              <li>OWASP Top 10: A03:2021 - Injection</li>
+              <li>CVE-2023-XXXX</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vulnerability 2 -->
+      <div class="vuln-item high">
+        <div class="vuln-header">
+          <div class="vuln-info">
+            <div class="vuln-title">
+              Cross-Site Scripting (XSS)
+              <span class="severity-badge severity-high">HIGH</span>
+            </div>
+            <div class="vuln-meta">
+              <span><i class="fas fa-desktop"></i> app.company.com</span>
+              <span><i class="fas fa-clock"></i> 5 hours ago</span>
+              <span><i class="fas fa-user"></i> Security Scan</span>
+              <span><i class="fas fa-layer-group"></i> Frontend</span>
+            </div>
+            <p class="vuln-description">
+              Reflected XSS vulnerability found in the search functionality. User input is not properly encoded, allowing malicious scripts to be executed in victims' browsers.
+            </p>
+          </div>
+          <div class="cvss-score high">
+            7.5
+            <div style="font-size: 0.7rem; font-weight: 500; margin-top: 0.25rem;">CVSS</div>
+          </div>
+        </div>
+        <div class="vuln-actions">
+          <button class="btn btn-danger btn-sm" onclick="remediate(2)">
+            <i class="fas fa-tools"></i>
+            Remediate Now
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="toggleDetails(2)">
+            <i class="fas fa-chevron-down"></i>
+            View Details
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="ignore(2)">
+            <i class="fas fa-eye-slash"></i>
+            Ignore
+          </button>
+        </div>
+        <div class="vuln-details" id="details-2"></div>
+      </div>
+
+      <!-- Vulnerability 3 -->
+      <div class="vuln-item medium">
+        <div class="vuln-header">
+          <div class="vuln-info">
+            <div class="vuln-title">
+              Missing Security Headers
+              <span class="severity-badge severity-medium">MEDIUM</span>
+            </div>
+            <div class="vuln-meta">
+              <span><i class="fas fa-globe"></i> www.company.com</span>
+              <span><i class="fas fa-clock"></i> 1 day ago</span>
+              <span><i class="fas fa-user"></i> Manual Review</span>
+              <span><i class="fas fa-layer-group"></i> HTTP Headers</span>
+            </div>
+            <p class="vuln-description">
+              Critical security headers are missing: Content-Security-Policy, X-Frame-Options, and Strict-Transport-Security. This may expose the application to various attacks.
+            </p>
+          </div>
+          <div class="cvss-score medium">
+            5.0
+            <div style="font-size: 0.7rem; font-weight: 500; margin-top: 0.25rem;">CVSS</div>
+          </div>
+        </div>
+        <div class="vuln-actions">
+          <button class="btn btn-danger btn-sm" onclick="remediate(3)">
+            <i class="fas fa-tools"></i>
+            Remediate Now
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="toggleDetails(3)">
+            <i class="fas fa-chevron-down"></i>
+            View Details
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="ignore(3)">
+            <i class="fas fa-eye-slash"></i>
+            Ignore
+          </button>
+        </div>
+        <div class="vuln-details" id="details-3"></div>
+      </div>
+
+      <!-- Vulnerability 4 -->
+      <div class="vuln-item low">
+        <div class="vuln-header">
+          <div class="vuln-info">
+            <div class="vuln-title">
+              Information Disclosure in Error Messages
+              <span class="severity-badge severity-low">LOW</span>
+            </div>
+            <div class="vuln-meta">
+              <span><i class="fas fa-server"></i> api.company.com</span>
+              <span><i class="fas fa-clock"></i> 3 days ago</span>
+              <span><i class="fas fa-user"></i> Penetration Test</span>
+              <span><i class="fas fa-layer-group"></i> Error Handling</span>
+            </div>
+            <p class="vuln-description">
+              Detailed error messages expose internal server paths and technology stack information. This information could be used by attackers to plan more targeted attacks.
+            </p>
+          </div>
+          <div class="cvss-score low">
+            3.0
+            <div style="font-size: 0.7rem; font-weight: 500; margin-top: 0.25rem;">CVSS</div>
+          </div>
+        </div>
+        <div class="vuln-actions">
+          <button class="btn btn-danger btn-sm" onclick="remediate(4)">
+            <i class="fas fa-tools"></i>
+            Remediate Now
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="toggleDetails(4)">
+            <i class="fas fa-chevron-down"></i>
+            View Details
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="ignore(4)">
+            <i class="fas fa-eye-slash"></i>
+            Ignore
+          </button>
+        </div>
+        <div class="vuln-details" id="details-4"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/';
+
+function toggleDetails(id) {
+  const details = document.getElementById(`details-${id}`);
+  details.classList.toggle('active');
+  
+  const btn = event.target.closest('button');
+  const icon = btn.querySelector('i');
+  if (details.classList.contains('active')) {
+    icon.className = 'fas fa-chevron-up';
+    btn.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Details';
+  } else {
+    icon.className = 'fas fa-chevron-down';
+    btn.innerHTML = '<i class="fas fa-chevron-down"></i> View Details';
+  }
+}
+
+function remediate(id) {
+  if (confirm(`Start automated remediation for vulnerability #${id}?`)) {
+    alert(`Remediation started for vulnerability #${id}`);
+  }
+}
+
+function ignore(id) {
+  if (confirm(`Mark vulnerability #${id} as ignored? This will hide it from the active list.`)) {
+    alert(`Vulnerability #${id} marked as ignored`);
+  }
+}
+
+function exportVulnerabilities() {
+  alert('Exporting vulnerabilities report as PDF...');
+}
+</script>
+</body>
+</html>

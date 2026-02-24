@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Domains - NEXUS</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, sans-serif; background: linear-gradient(135deg, #0f172a, #1e293b); color: #f8fafc; }
+.app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+.sidebar { background: linear-gradient(180deg, #1e293b, #0f172a); padding: 2rem 1.5rem; border-right: 1px solid rgba(59,130,246,0.2); }
+.logo { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; padding: 1rem; background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1)); border-radius: 12px; }
+.logo-icon { width: 45px; height: 45px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; }
+.logo-text { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; margin-bottom: 0.35rem; border-radius: 10px; cursor: pointer; color: #94a3b8; }
+.nav-item:hover { background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.15)); color: #60a5fa; }
+.nav-item.active { background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2)); color: #60a5fa; border-left: 3px solid #3b82f6; }
+.main { padding: 2rem 3rem; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.header-title { font-size: 2rem; font-weight: 800; }
+.btn-primary { padding: 0.85rem 1.75rem; border-radius: 12px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; font-weight: 700; cursor: pointer; }
+.btn-primary:hover { transform: translateY(-2px); }
+.domains-grid { display: grid; gap: 1.5rem; }
+.domain-card { background: linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.8)); border: 2px solid rgba(59,130,246,0.2); border-radius: 20px; padding: 2rem; transition: all 0.3s; }
+.domain-card:hover { border-color: rgba(59,130,246,0.5); transform: translateY(-4px); }
+.domain-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.domain-name { font-size: 1.5rem; font-weight: 700; }
+.domain-url { color: #64748b; margin-bottom: 1.5rem; }
+.domain-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.stat { text-align: center; padding: 1rem; background: rgba(59,130,246,0.05); border-radius: 12px; }
+.stat-value { font-size: 2rem; font-weight: 700; color: #60a5fa; }
+.stat-label { font-size: 0.875rem; color: #94a3b8; margin-top: 0.5rem; }
+.domain-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+.btn { padding: 0.75rem 1.5rem; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; }
+.btn-scan { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+.btn-secondary { background: rgba(59,130,246,0.1); color: #60a5fa; }
+.modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+.modal.show { display: flex; }
+.modal-content { background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid rgba(59,130,246,0.3); border-radius: 20px; padding: 2rem; min-width: 500px; }
+.modal-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; }
+.form-group { margin-bottom: 1.5rem; }
+.form-label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #94a3b8; }
+.form-input { width: 100%; padding: 0.85rem; background: rgba(15,23,42,0.5); border: 1px solid rgba(59,130,246,0.3); border-radius: 10px; color: #f8fafc; font-size: 1rem; }
+.form-input:focus { outline: none; border-color: rgba(59,130,246,0.6); }
+.modal-actions { display: flex; gap: 1rem; justify-content: flex-end; }
+.alert { padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; }
+.alert-info { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); color: #60a5fa; }
+.alert-warning { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; }
+</style>
+</head>
+<body>
+<div class="app">
+<div class="sidebar">
+<div class="logo">
+<div class="logo-icon">🛡️</div>
+<div class="logo-text">NEXUS</div>
+</div>
+<div class="nav-item" onclick="window.location='/dashboard.html'"><span>📊</span> Overview</div>
+<div class="nav-item active"><span>🌐</span> Domains</div>
+<div class="nav-item" onclick="window.location='/scans.html'"><span>🔍</span> Scans</div>
+<div class="nav-item" onclick="window.location='/vulnerabilities.html'"><span>⚠️</span> Vulnerabilities</div>
+<div class="nav-item" onclick="window.location='/pricing'"><span>💳</span> Billing</div>
+<div class="nav-item" onclick="logout()"><span>🚪</span> Logout</div>
+</div>
+
+<div class="main">
+<div class="header">
+<div>
+<div class="header-title">Domain Management</div>
+<div style="color: #94a3b8; margin-top: 0.5rem;">Monitor and scan your web applications</div>
+</div>
+<button class="btn-primary" onclick="showAddDomain()">➕ Add Domain</button>
+</div>
+
+<div class="alert alert-warning" id="scanWarning" style="display:none;">
+⚠️ <strong>Important:</strong> Cannot scan localhost or internal IPs. Please add external domains (e.g., https://example.com, https://google.com)
+</div>
+
+<div id="domainsList" class="domains-grid">
+<div class="domain-card">
+<div class="domain-header">
+<div>
+<div class="domain-name">Example Domain</div>
+<div class="domain-url">https://example.com</div>
+</div>
+<span style="font-size: 3rem;">🌐</span>
+</div>
+<div class="domain-stats">
+<div class="stat">
+<div class="stat-value">850</div>
+<div class="stat-label">Security Score</div>
+</div>
+<div class="stat">
+<div class="stat-value">5</div>
+<div class="stat-label">Total Scans</div>
+</div>
+<div class="stat">
+<div class="stat-value">3</div>
+<div class="stat-label">Open Issues</div>
+</div>
+<div class="stat">
+<div class="stat-value">2d</div>
+<div class="stat-label">Last Scan</div>
+</div>
+</div>
+<div class="domain-actions">
+<button class="btn btn-scan" onclick="scanDomain(1, 'https://example.com')">🔍 Scan Now</button>
+<button class="btn btn-secondary" onclick="alert('View details')">📊 Details</button>
+<button class="btn btn-secondary" onclick="alert('Delete domain')">🗑️ Delete</button>
+</div>
+</div>
+</div>
+</div>
+
+<div class="modal" id="addModal">
+<div class="modal-content">
+<div class="modal-title">Add New Domain</div>
+<div class="alert alert-info">
+💡 Add external domains like https://example.com. Cannot scan localhost or 127.0.0.1
+</div>
+<div class="form-group">
+<label class="form-label">Domain URL</label>
+<input type="text" class="form-input" id="domainUrl" placeholder="https://example.com">
+</div>
+<div class="form-group">
+<label class="form-label">Display Name (optional)</label>
+<input type="text" class="form-input" id="domainName" placeholder="My Website">
+</div>
+<div class="modal-actions">
+<button class="btn btn-secondary" onclick="hideAddDomain()">Cancel</button>
+<button class="btn-primary" onclick="addDomain()">Add Domain</button>
+</div>
+</div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/login';
+
+async function loadDomains() {
+  try {
+    const res = await fetch('/api/domains', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.ok) {
+      const domains = await res.json();
+      if (domains.length > 0) {
+        document.getElementById('domainsList').innerHTML = domains.map(d => `
+          <div class="domain-card">
+            <div class="domain-header">
+              <div>
+                <div class="domain-name">${d.name || 'Domain'}</div>
+                <div class="domain-url">${d.url}</div>
+              </div>
+              <span style="font-size: 3rem;">🌐</span>
+            </div>
+            <div class="domain-stats">
+              <div class="stat">
+                <div class="stat-value">--</div>
+                <div class="stat-label">Score</div>
+              </div>
+              <div class="stat">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Scans</div>
+              </div>
+              <div class="stat">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Issues</div>
+              </div>
+              <div class="stat">
+                <div class="stat-value">Never</div>
+                <div class="stat-label">Last Scan</div>
+              </div>
+            </div>
+            <div class="domain-actions">
+              <button class="btn btn-scan" onclick="scanDomain(${d.id}, '${d.url}')">🔍 Scan Now</button>
+              <button class="btn btn-secondary" onclick="alert('View details')">📊 Details</button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+  } catch(e) {
+    console.log('Error loading domains:', e);
+  }
+}
+
+function showAddDomain() {
+  document.getElementById('addModal').classList.add('show');
+}
+
+function hideAddDomain() {
+  document.getElementById('addModal').classList.remove('show');
+}
+
+async function addDomain() {
+  const url = document.getElementById('domainUrl').value;
+  const name = document.getElementById('domainName').value;
+  
+  if (!url) {
+    alert('Please enter a domain URL');
+    return;
+  }
+  
+  // Check if localhost
+  if (url.includes('localhost') || url.includes('127.0.0.1') || url.includes('0.0.0.0')) {
+    document.getElementById('scanWarning').style.display = 'block';
+    alert('❌ Cannot scan localhost or internal IPs. Please add external domains.');
+    return;
+  }
+  
+  try {
+    const res = await fetch('/api/domains', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        url: url, 
+        name: name || url.replace(/https?:\/\//, '').split('/')[0]
+      })
+    });
+    
+    if (res.ok) {
+      alert('✅ Domain added successfully!');
+      hideAddDomain();
+      loadDomains();
+      document.getElementById('domainUrl').value = '';
+      document.getElementById('domainName').value = '';
+    } else {
+      const error = await res.json();
+      alert('Error: ' + (error.error || 'Failed to add domain'));
+    }
+  } catch(e) {
+    alert('Error adding domain: ' + e.message);
+  }
+}
+
+async function scanDomain(domainId, url) {
+  // Check if localhost
+  if (url.includes('localhost') || url.includes('127.0.0.1') || url.includes('0.0.0.0')) {
+    document.getElementById('scanWarning').style.display = 'block';
+    alert('❌ Cannot scan localhost!\n\nℹ️ Localhost cannot be scanned because:\n- The scanner runs on the same machine\n- No external network access\n\n✅ Try scanning external domains like:\n- https://example.com\n- https://testphp.vulnweb.com\n- https://google.com');
+    return;
+  }
+  
+  if (!confirm('Start security scan for ' + url + '?\n\nThis will test for SQL Injection, XSS, Security Headers, and SSL/TLS issues.')) {
+    return;
+  }
+  
+  try {
+    const res = await fetch('/api/scans/start', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ domain_id: domainId })
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      alert('✅ Scan started! Scan ID: ' + data.scan_id + '\n\nThe scan will take 10-30 seconds. Check the Scans page for results.');
+      window.location.href = '/scans.html';
+    } else {
+      const error = await res.json();
+      alert('Error: ' + (error.error || 'Failed to start scan'));
+    }
+  } catch(e) {
+    alert('Error starting scan: ' + e.message);
+  }
+}
+
+function logout() {
+  if (confirm('Logout?')) {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+  }
+}
+
+loadDomains();
+</script>
+</body>
+</html>

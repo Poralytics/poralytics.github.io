@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — NEXUS Security</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Inter, sans-serif; background: #0a1628; color: #f8fafc; }
+.container { max-width: 1400px; margin: 0 auto; padding: 4rem 2rem; }
+.header { text-align: center; margin-bottom: 4rem; }
+.header h1 { font-size: 3.5rem; font-weight: 900; margin-bottom: 1rem; }
+.pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
+.pricing-card { background: #1a2332; border: 2px solid rgba(148,163,184,0.15); border-radius: 24px; padding: 2.5rem; transition: all 0.4s; }
+.pricing-card:hover { transform: translateY(-8px); border-color: #3b82f6; }
+.plan-name { font-size: 1.5rem; font-weight: 800; margin-bottom: 1rem; }
+.plan-price { display: flex; align-items: baseline; justify-content: center; gap: 0.5rem; margin: 1.5rem 0; }
+.price-amount { font-size: 4rem; font-weight: 900; }
+.plan-cta { width: 100%; padding: 1rem; background: linear-gradient(135deg, #1e40af, #6366f1); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; margin-top: 2rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header"><h1>Choose Your Plan</h1></div>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="plan-name">Free</div>
+      <div class="plan-price"><span class="price-amount">$0</span><span>/mo</span></div>
+      <button class="plan-cta" onclick="selectPlan('free')">Get Started</button>
+    </div>
+    <div class="pricing-card">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price"><span class="price-amount">$99</span><span>/mo</span></div>
+      <button class="plan-cta" onclick="selectPlan('starter')">Start Trial</button>
+    </div>
+    <div class="pricing-card">
+      <div class="plan-name">Professional</div>
+      <div class="plan-price"><span class="price-amount">$299</span><span>/mo</span></div>
+      <button class="plan-cta" onclick="selectPlan('professional')">Start Trial</button>
+    </div>
+    <div class="pricing-card">
+      <div class="plan-name">Business</div>
+      <div class="plan-price"><span class="price-amount">$799</span><span>/mo</span></div>
+      <button class="plan-cta" onclick="selectPlan('business')">Start Trial</button>
+    </div>
+    <div class="pricing-card">
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-price"><span class="price-amount">$5K+</span><span>/mo</span></div>
+      <button class="plan-cta" onclick="alert('Contact sales@nexus.security')">Contact Sales</button>
+    </div>
+  </div>
+</div>
+<script>
+async function selectPlan(plan) {
+  const token = localStorage.getItem('token');
+  if (!token) { window.location.href = '/login.html'; return; }
+  
+  const priceIds = { starter: 'price_starter_monthly', professional: 'price_pro_monthly', business: 'price_business_monthly' };
+  if (!priceIds[plan]) { alert('Already on free plan!'); return; }
+  
+  const res = await fetch('/api/billing/checkout', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ planId: priceIds[plan] })
+  });
+  
+  const data = await res.json();
+  if (data.url) window.location.href = data.url;
+}
+</script>
+</body>
+</html>

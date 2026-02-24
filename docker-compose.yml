@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  nexus:
+    build: .
+    container_name: nexus-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET:-change-this-in-production}
+    volumes:
+      - nexus-data:/app/data
+      - nexus-uploads:/app/uploads
+      - nexus-reports:/app/reports
+      - nexus-backups:/app/backups
+    networks:
+      - nexus-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  nexus-data:
+    driver: local
+  nexus-uploads:
+    driver: local
+  nexus-reports:
+    driver: local
+  nexus-backups:
+    driver: local
+
+networks:
+  nexus-network:
+    driver: bridge

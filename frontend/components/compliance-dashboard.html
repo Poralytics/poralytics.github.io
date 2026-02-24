@@ -1,0 +1,158 @@
+<!-- COMPLIANCE DASHBOARD COMPONENT -->
+<div class="compliance-dashboard-widget">
+  <style>
+    .compliance-dashboard-widget { background: #1a2332; border: 2px solid rgba(148,163,184,0.15); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; }
+    .compliance-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .compliance-title { font-size: 1.25rem; font-weight: 700; color: #f8fafc; }
+    .compliance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+    .compliance-card { background: linear-gradient(135deg, #243447, #1a2332); border-radius: 12px; padding: 1.25rem; border: 2px solid rgba(148,163,184,0.1); position: relative; overflow: hidden; }
+    .compliance-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+    .compliance-card.compliant::before { background: linear-gradient(90deg, #10b981, #059669); }
+    .compliance-card.partial::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+    .compliance-card.non-compliant::before { background: linear-gradient(90deg, #dc2626, #b91c1c); }
+    .standard-name { font-size: 1.1rem; font-weight: 700; color: #f8fafc; margin-bottom: 0.5rem; }
+    .standard-desc { font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem; }
+    .compliance-status { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem; }
+    .status-compliant { background: rgba(16,185,129,0.2); color: #10b981; }
+    .status-partial { background: rgba(245,158,11,0.2); color: #f59e0b; }
+    .status-non-compliant { background: rgba(220,38,38,0.2); color: #dc2626; }
+    .compliance-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .metric { background: rgba(15,23,42,0.5); padding: 0.75rem; border-radius: 8px; }
+    .metric-label { font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.25rem; }
+    .metric-value { font-size: 1.5rem; font-weight: 700; color: #f8fafc; }
+    .compliance-actions { margin-top: 1rem; display: flex; gap: 0.5rem; }
+    .action-btn { flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 0.5rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .action-btn:hover { opacity: 0.9; }
+    .loading { text-align: center; padding: 2rem; color: #94a3b8; }
+  </style>
+
+  <div class="compliance-header">
+    <div class="compliance-title">Compliance Dashboard</div>
+    <button class="action-btn" onclick="refreshCompliance()" style="flex: none; width: auto; padding: 0.5rem 1rem;">
+      🔄 Refresh
+    </button>
+  </div>
+
+  <div class="compliance-grid" id="complianceGrid">
+    <div class="loading">Loading compliance assessments...</div>
+  </div>
+</div>
+
+<script>
+async function loadComplianceDashboard() {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const container = document.getElementById('complianceGrid');
+    container.innerHTML = '<div class="loading">🔍 Assessing compliance standards...</div>';
+
+    const res = await fetch('/api/compliance/dashboard', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) {
+      // Feature compliance pas disponible
+      container.innerHTML = `
+        <div class="compliance-card">
+          <div class="standard-name">🔒 Compliance Features</div>
+          <div class="standard-desc">Available in Business plan and above</div>
+          <a href="/pricing.html" style="color:#3b82f6;font-weight:600;">Upgrade to unlock compliance automation</a>
+        </div>
+      `;
+      return;
+    }
+
+    const data = await res.json();
+    
+    // Afficher les cards
+    container.innerHTML = data.assessments.map(assessment => {
+      const statusClass = assessment.status === 'compliant' ? 'compliant' : 
+                         assessment.status === 'partially_compliant' ? 'partial' : 
+                         'non-compliant';
+      
+      const statusLabel = assessment.status === 'compliant' ? 'Compliant' :
+                         assessment.status === 'partially_compliant' ? 'Partially Compliant' :
+                         'Non-Compliant';
+      
+      const statusBadgeClass = assessment.status === 'compliant' ? 'status-compliant' :
+                              assessment.status === 'partially_compliant' ? 'status-partial' :
+                              'status-non-compliant';
+
+      return `
+        <div class="compliance-card ${statusClass}">
+          <div class="standard-name">${assessment.name}</div>
+          <div class="standard-desc">${getStandardDescription(assessment.standard_id)}</div>
+          
+          <span class="compliance-status ${statusBadgeClass}">${statusLabel}</span>
+          
+          <div class="compliance-metrics">
+            <div class="metric">
+              <div class="metric-label">Compliance</div>
+              <div class="metric-value">${assessment.compliance_rate}%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Gaps</div>
+              <div class="metric-value">${assessment.gaps_count || 0}</div>
+            </div>
+          </div>
+          
+          <div class="compliance-actions">
+            <button class="action-btn" onclick="viewComplianceDetails('${assessment.standard_id}')">
+              📊 View Details
+            </button>
+            <button class="action-btn" onclick="exportComplianceReport('${assessment.standard_id}')">
+              📥 Export
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (error) {
+    console.error('Error loading compliance:', error);
+    document.getElementById('complianceGrid').innerHTML = `
+      <div class="compliance-card">
+        <div class="standard-name" style="color:#ea580c;">Unable to load compliance data</div>
+        <div class="standard-desc">Please try again later</div>
+      </div>
+    `;
+  }
+}
+
+function getStandardDescription(standardId) {
+  const descriptions = {
+    'iso27001': 'Information Security Management',
+    'pci_dss': 'Payment Card Industry Standard',
+    'soc2': 'Trust Services Criteria',
+    'gdpr': 'Data Protection Regulation',
+    'hipaa': 'Healthcare Data Protection'
+  };
+  return descriptions[standardId] || '';
+}
+
+async function viewComplianceDetails(standardId) {
+  const token = localStorage.getItem('token');
+  window.open(`/compliance-details.html?standard=${standardId}`, '_blank');
+}
+
+async function exportComplianceReport(standardId) {
+  const token = localStorage.getItem('token');
+  const url = `/api/compliance/export/${standardId}?token=${token}`;
+  window.location.href = url;
+}
+
+function refreshCompliance() {
+  loadComplianceDashboard();
+}
+
+// Load on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadComplianceDashboard);
+} else {
+  loadComplianceDashboard();
+}
+
+// Auto-refresh every 10 minutes
+setInterval(loadComplianceDashboard, 10 * 60 * 1000);
+</script>

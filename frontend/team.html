@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team - NEXUS</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-primary: #0a0e27;
+  --bg-card: #1a1f3a;
+  --accent-blue: #00d4ff;
+  --accent-purple: #8b5cf6;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --border: rgba(148, 163, 184, 0.1);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: linear-gradient(135deg, #0a0e27 0%, #111632 50%, #0a0e27 100%);
+  color: var(--text-primary);
+}
+
+.app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+
+.sidebar {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+  padding: 2rem 0;
+  position: fixed;
+  width: 280px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.logo {
+  padding: 0 1.5rem;
+  margin-bottom: 3rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.logo-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-section { margin-bottom: 2rem; }
+.nav-title {
+  padding: 0 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.nav-item {
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.nav-item.active { background: rgba(0, 212, 255, 0.1); color: var(--accent-blue); }
+.nav-item i { width: 24px; text-align: center; }
+
+.main { margin-left: 280px; padding: 2rem; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.header h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, var(--text-primary), var(--accent-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: white;
+}
+
+.btn-primary:hover { transform: translateY(-2px); }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.stat-icon.blue { background: rgba(0, 212, 255, 0.1); color: var(--accent-blue); }
+.stat-icon.green { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+.stat-icon.purple { background: rgba(139, 92, 246, 0.1); color: var(--accent-purple); }
+
+.stat-content { flex: 1; }
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
+.team-container {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.container-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.container-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.search-bar {
+  padding: 0.625rem 1rem;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  min-width: 250px;
+}
+
+.member-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  transition: all 0.3s;
+}
+
+.member-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateX(4px);
+}
+
+.member-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.member-info { flex: 1; }
+
+.member-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.member-meta {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.member-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.role-badge {
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.role-owner { background: rgba(0, 212, 255, 0.15); color: var(--accent-blue); }
+.role-admin { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
+.role-member { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+.role-viewer { background: rgba(148, 163, 184, 0.15); color: var(--text-secondary); }
+
+.member-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(26, 31, 58, 0.8);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.3s;
+}
+
+.btn-icon:hover {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+.status-badge {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.status-active { background: var(--success); }
+.status-inactive { background: var(--text-secondary); }
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 14, 39, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.active { display: flex; }
+
+.modal-content {
+  background: rgba(26, 31, 58, 0.95);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 600px;
+  width: 90%;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-title { font-size: 1.5rem; font-weight: 700; }
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--danger);
+}
+
+.form-group { margin-bottom: 1.5rem; }
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 0.875rem;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.permission-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+}
+
+.permission-item input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+
+.btn-secondary {
+  background: rgba(26, 31, 58, 0.8);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+      <span class="logo-text">NEXUS</span>
+    </div>
+    
+    <nav>
+      <div class="nav-section">
+        <div class="nav-title">Overview</div>
+        <a href="dashboard-ultimate.html" class="nav-item">
+          <i class="fas fa-th-large"></i>
+          <span>Dashboard</span>
+        </a>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-title">Security</div>
+        <a href="assets.html" class="nav-item">
+          <i class="fas fa-server"></i>
+          <span>Assets</span>
+        </a>
+        <a href="vulnerabilities.html" class="nav-item">
+          <i class="fas fa-bug"></i>
+          <span>Vulnerabilities</span>
+        </a>
+        <a href="scans.html" class="nav-item">
+          <i class="fas fa-search"></i>
+          <span>Security Scans</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">Management</div>
+        <a href="reports.html" class="nav-item">
+          <i class="fas fa-file-alt"></i>
+          <span>Reports</span>
+        </a>
+        <a href="#" class="nav-item active">
+          <i class="fas fa-users"></i>
+          <span>Team</span>
+        </a>
+        <a href="settings.html" class="nav-item">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <div>
+        <h1>Team Management</h1>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem;">Manage team members, roles, and permissions</p>
+      </div>
+      <button class="btn btn-primary" onclick="openInviteModal()">
+        <i class="fas fa-user-plus"></i>
+        Invite Member
+      </button>
+    </header>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Total Members</div>
+          <div class="stat-value">12</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="fas fa-user-check"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Active</div>
+          <div class="stat-value">10</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Pending Invites</div>
+          <div class="stat-value">2</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team Members -->
+    <div class="team-container">
+      <div class="container-header">
+        <div class="container-title">
+          <i class="fas fa-users"></i>
+          Team Members
+        </div>
+        <input type="text" class="search-bar" placeholder="Search members...">
+      </div>
+
+      <!-- Member 1 -->
+      <div class="member-card">
+        <div class="member-avatar">JD</div>
+        <div class="member-info">
+          <div class="member-name">John Doe</div>
+          <div class="member-meta">
+            <span>
+              <span class="status-badge status-active"></span>
+              Active
+            </span>
+            <span><i class="fas fa-envelope"></i> john@company.com</span>
+            <span><i class="fas fa-clock"></i> Last login: 2 hours ago</span>
+          </div>
+        </div>
+        <span class="role-badge role-owner">Owner</span>
+        <div class="member-actions">
+          <button class="btn-icon" onclick="viewMember(1)">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Member 2 -->
+      <div class="member-card">
+        <div class="member-avatar" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa);">AS</div>
+        <div class="member-info">
+          <div class="member-name">Alice Smith</div>
+          <div class="member-meta">
+            <span>
+              <span class="status-badge status-active"></span>
+              Active
+            </span>
+            <span><i class="fas fa-envelope"></i> alice@company.com</span>
+            <span><i class="fas fa-clock"></i> Last login: 1 day ago</span>
+          </div>
+        </div>
+        <span class="role-badge role-admin">Admin</span>
+        <div class="member-actions">
+          <button class="btn-icon" onclick="editMember(2)">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn-icon" onclick="removeMember(2)">
+            <i class="fas fa-user-minus"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Member 3 -->
+      <div class="member-card">
+        <div class="member-avatar" style="background: linear-gradient(135deg, #10b981, #34d399);">BC</div>
+        <div class="member-info">
+          <div class="member-name">Bob Chen</div>
+          <div class="member-meta">
+            <span>
+              <span class="status-badge status-active"></span>
+              Active
+            </span>
+            <span><i class="fas fa-envelope"></i> bob@company.com</span>
+            <span><i class="fas fa-clock"></i> Last login: 3 hours ago</span>
+          </div>
+        </div>
+        <span class="role-badge role-member">Member</span>
+        <div class="member-actions">
+          <button class="btn-icon" onclick="editMember(3)">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn-icon" onclick="removeMember(3)">
+            <i class="fas fa-user-minus"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Member 4 -->
+      <div class="member-card">
+        <div class="member-avatar" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">EM</div>
+        <div class="member-info">
+          <div class="member-name">Emma Martinez</div>
+          <div class="member-meta">
+            <span>
+              <span class="status-badge status-inactive"></span>
+              Pending Invitation
+            </span>
+            <span><i class="fas fa-envelope"></i> emma@company.com</span>
+            <span><i class="fas fa-clock"></i> Invited: 2 days ago</span>
+          </div>
+        </div>
+        <span class="role-badge role-viewer">Viewer</span>
+        <div class="member-actions">
+          <button class="btn-icon" onclick="resendInvite(4)">
+            <i class="fas fa-envelope"></i>
+          </button>
+          <button class="btn-icon" onclick="removeMember(4)">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Invite Member Modal -->
+<div class="modal" id="inviteModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Invite Team Member</h2>
+      <button class="modal-close" onclick="closeInviteModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <form id="inviteForm">
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" class="form-input" placeholder="member@company.com" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select class="form-select" required>
+          <option value="">Select role...</option>
+          <option value="admin">Admin - Full access to all features</option>
+          <option value="member">Member - Can manage scans and view reports</option>
+          <option value="viewer">Viewer - Read-only access</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Permissions</label>
+        <div class="permissions-grid">
+          <label class="permission-item">
+            <input type="checkbox" checked>
+            <span>View Dashboard</span>
+          </label>
+          <label class="permission-item">
+            <input type="checkbox" checked>
+            <span>View Assets</span>
+          </label>
+          <label class="permission-item">
+            <input type="checkbox">
+            <span>Manage Assets</span>
+          </label>
+          <label class="permission-item">
+            <input type="checkbox">
+            <span>Run Scans</span>
+          </label>
+          <label class="permission-item">
+            <input type="checkbox" checked>
+            <span>View Reports</span>
+          </label>
+          <label class="permission-item">
+            <input type="checkbox">
+            <span>Generate Reports</span>
+          </label>
+          <label class="permission-item">
+            <input type="checkbox">
+            <span>Manage Team</span>
+          </label>
+          <label class="permission-item">
+            <input type="checkbox">
+            <span>Billing Access</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeInviteModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-paper-plane"></i>
+          Send Invitation
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/';
+
+function openInviteModal() {
+  document.getElementById('inviteModal').classList.add('active');
+}
+
+function closeInviteModal() {
+  document.getElementById('inviteModal').classList.remove('active');
+}
+
+document.getElementById('inviteForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  alert('Invitation sent successfully!');
+  closeInviteModal();
+});
+
+function viewMember(id) {
+  alert(`View member #${id} details`);
+}
+
+function editMember(id) {
+  alert(`Edit member #${id}`);
+  openInviteModal(); // In production, pre-fill form
+}
+
+function removeMember(id) {
+  if (confirm('Remove this team member?')) {
+    alert(`Member #${id} removed`);
+  }
+}
+
+function resendInvite(id) {
+  alert(`Resending invitation to member #${id}`);
+}
+</script>
+</body>
+</html>

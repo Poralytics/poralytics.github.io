@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Scans - NEXUS</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-primary: #0a0e27;
+  --bg-secondary: #111632;
+  --bg-card: #1a1f3a;
+  --accent-blue: #00d4ff;
+  --accent-purple: #8b5cf6;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --border: rgba(148, 163, 184, 0.1);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: linear-gradient(135deg, #0a0e27 0%, #111632 50%, #0a0e27 100%);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+  padding: 2rem 0;
+  position: fixed;
+  width: 280px;
+  height: 100vh;
+  overflow-y: auto;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+}
+
+.logo {
+  padding: 0 1.5rem;
+  margin-bottom: 3rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 8px 24px rgba(0, 212, 255, 0.3);
+}
+
+.logo-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-section { margin-bottom: 2rem; }
+
+.nav-title {
+  padding: 0 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+}
+
+.nav-item {
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  font-weight: 500;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple));
+  transition: height 0.3s ease;
+}
+
+.nav-item:hover::before, .nav-item.active::before { height: 70%; }
+.nav-item:hover { background: rgba(0, 212, 255, 0.05); color: var(--text-primary); transform: translateX(4px); }
+.nav-item.active { background: rgba(0, 212, 255, 0.1); color: var(--accent-blue); }
+.nav-item i { width: 24px; text-align: center; font-size: 1.125rem; }
+
+/* Main */
+.main {
+  margin-left: 280px;
+  padding: 2rem;
+  animation: fadeInUp 0.8s ease;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-left h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(90deg, var(--text-primary), var(--accent-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-left p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.header-right {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: white;
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 212, 255, 0.4);
+}
+
+.btn-secondary {
+  background: rgba(26, 31, 58, 0.6);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+/* Stats */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.stat-icon.blue { background: rgba(0, 212, 255, 0.1); color: var(--accent-blue); }
+.stat-icon.green { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+.stat-icon.red { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+.stat-icon.yellow { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+
+.stat-content { flex: 1; }
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+/* Scans Table */
+.scans-container {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.table-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.table-title i { color: var(--accent-blue); }
+
+.filters {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.filter-select {
+  padding: 0.625rem 1rem;
+  background: rgba(26, 31, 58, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+
+.filter-select:focus { outline: none; border-color: var(--accent-blue); }
+
+.scans-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.scans-table thead tr {
+  border-bottom: 1px solid var(--border);
+}
+
+.scans-table th {
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.scans-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.3s ease;
+}
+
+.scans-table tbody tr:hover {
+  background: rgba(0, 212, 255, 0.05);
+}
+
+.scans-table td {
+  padding: 1.25rem 1rem;
+}
+
+.scan-asset {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.scan-asset-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(0, 212, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-blue);
+}
+
+.scan-asset-info h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.scan-asset-info p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.status-badge {
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-completed { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+.status-running { background: rgba(245, 158, 11, 0.15); color: var(--warning); animation: pulse 2s infinite; }
+.status-failed { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+.status-pending { background: rgba(148, 163, 184, 0.15); color: var(--text-secondary); }
+
+.severity-score {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.severity-low { color: var(--success); }
+.severity-medium { color: var(--warning); }
+.severity-high { color: var(--danger); }
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(26, 31, 58, 0.8);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  transform: translateY(-2px);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.page-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(26, 31, 58, 0.6);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.page-btn:hover, .page-btn.active {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: white;
+  border-color: transparent;
+}
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 14, 39, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.active { display: flex; }
+
+.modal-content {
+  background: rgba(26, 31, 58, 0.95);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--danger);
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.1);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 0.875rem;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+}
+
+.form-input:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+      <span class="logo-text">NEXUS</span>
+    </div>
+    
+    <nav>
+      <div class="nav-section">
+        <div class="nav-title">Overview</div>
+        <a href="dashboard-ultimate.html" class="nav-item">
+          <i class="fas fa-th-large"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-fire"></i>
+          <span>Threat Intelligence</span>
+        </a>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-title">Security</div>
+        <a href="#" class="nav-item">
+          <i class="fas fa-server"></i>
+          <span>Assets</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-bug"></i>
+          <span>Vulnerabilities</span>
+        </a>
+        <a href="#" class="nav-item active">
+          <i class="fas fa-search"></i>
+          <span>Security Scans</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <div class="header-left">
+        <h1>Security Scans</h1>
+        <p>Monitor and manage all security scans</p>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-secondary" onclick="scheduleScan()">
+          <i class="fas fa-calendar"></i>
+          Schedule Scan
+        </button>
+        <button class="btn btn-primary" onclick="openNewScanModal()">
+          <i class="fas fa-play"></i>
+          Run New Scan
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <i class="fas fa-play-circle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Total Scans</div>
+          <div class="stat-value">156</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Completed</div>
+          <div class="stat-value">142</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon yellow">
+          <i class="fas fa-spinner"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Running</div>
+          <div class="stat-value">3</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon red">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Issues Found</div>
+          <div class="stat-value">47</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scans Table -->
+    <div class="scans-container">
+      <div class="table-header">
+        <div class="table-title">
+          <i class="fas fa-list"></i>
+          Recent Scans
+        </div>
+        <div class="filters">
+          <select class="filter-select" id="statusFilter">
+            <option value="all">All Status</option>
+            <option value="completed">Completed</option>
+            <option value="running">Running</option>
+            <option value="failed">Failed</option>
+            <option value="pending">Pending</option>
+          </select>
+          <select class="filter-select" id="typeFilter">
+            <option value="all">All Types</option>
+            <option value="full">Full Scan</option>
+            <option value="quick">Quick Scan</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+      </div>
+
+      <table class="scans-table">
+        <thead>
+          <tr>
+            <th>Asset</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Issues</th>
+            <th>Severity</th>
+            <th>Started</th>
+            <th>Duration</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="scansTableBody">
+          <tr>
+            <td>
+              <div class="scan-asset">
+                <div class="scan-asset-icon">
+                  <i class="fas fa-globe"></i>
+                </div>
+                <div class="scan-asset-info">
+                  <h4>api.company.com</h4>
+                  <p>Production API</p>
+                </div>
+              </div>
+            </td>
+            <td>Full Scan</td>
+            <td><span class="status-badge status-completed">Completed</span></td>
+            <td>8</td>
+            <td><span class="severity-score severity-high">7.5</span></td>
+            <td>2 hours ago</td>
+            <td>45 min</td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-icon" onclick="viewScan(1)" title="View Details">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn-icon" onclick="downloadReport(1)" title="Download Report">
+                  <i class="fas fa-download"></i>
+                </button>
+                <button class="btn-icon" onclick="rerunScan(1)" title="Re-run">
+                  <i class="fas fa-redo"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="scan-asset">
+                <div class="scan-asset-icon">
+                  <i class="fas fa-desktop"></i>
+                </div>
+                <div class="scan-asset-info">
+                  <h4>app.company.com</h4>
+                  <p>Web Application</p>
+                </div>
+              </div>
+            </td>
+            <td>Quick Scan</td>
+            <td><span class="status-badge status-running">Running</span></td>
+            <td>--</td>
+            <td>--</td>
+            <td>5 minutes ago</td>
+            <td>In progress</td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-icon" onclick="viewScan(2)" title="View Details">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn-icon" onclick="stopScan(2)" title="Stop Scan">
+                  <i class="fas fa-stop"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="scan-asset">
+                <div class="scan-asset-icon">
+                  <i class="fas fa-server"></i>
+                </div>
+                <div class="scan-asset-info">
+                  <h4>www.company.com</h4>
+                  <p>Corporate Website</p>
+                </div>
+              </div>
+            </td>
+            <td>Full Scan</td>
+            <td><span class="status-badge status-completed">Completed</span></td>
+            <td>3</td>
+            <td><span class="severity-score severity-medium">5.0</span></td>
+            <td>Yesterday</td>
+            <td>38 min</td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-icon" onclick="viewScan(3)">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn-icon" onclick="downloadReport(3)">
+                  <i class="fas fa-download"></i>
+                </button>
+                <button class="btn-icon" onclick="rerunScan(3)">
+                  <i class="fas fa-redo"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="pagination">
+        <button class="page-btn">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- New Scan Modal -->
+<div class="modal" id="newScanModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Run New Security Scan</h2>
+      <button class="modal-close" onclick="closeNewScanModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <form id="newScanForm">
+      <div class="form-group">
+        <label class="form-label">Select Asset</label>
+        <select class="form-select" id="scanAsset" required>
+          <option value="">Choose an asset...</option>
+          <option value="1">api.company.com - Production API</option>
+          <option value="2">app.company.com - Web Application</option>
+          <option value="3">www.company.com - Corporate Website</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Scan Type</label>
+        <select class="form-select" id="scanType" required>
+          <option value="full">Full Scan (All vulnerabilities)</option>
+          <option value="quick">Quick Scan (Common issues)</option>
+          <option value="custom">Custom Scan</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Priority</label>
+        <select class="form-select" id="scanPriority">
+          <option value="high">High (Run immediately)</option>
+          <option value="normal" selected>Normal</option>
+          <option value="low">Low (Background)</option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeNewScanModal()">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-play"></i>
+          Start Scan
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/';
+
+// Modal
+function openNewScanModal() {
+  document.getElementById('newScanModal').classList.add('active');
+}
+
+function closeNewScanModal() {
+  document.getElementById('newScanModal').classList.remove('active');
+}
+
+// Form submit
+document.getElementById('newScanForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const asset = document.getElementById('scanAsset').value;
+  const type = document.getElementById('scanType').value;
+  const priority = document.getElementById('scanPriority').value;
+  
+  alert(`Scan started!\nAsset: ${asset}\nType: ${type}\nPriority: ${priority}`);
+  closeNewScanModal();
+  
+  // Reload table
+  setTimeout(() => {
+    location.reload();
+  }, 1000);
+});
+
+// Actions
+function viewScan(id) {
+  alert(`Viewing scan details for scan #${id}`);
+}
+
+function downloadReport(id) {
+  alert(`Downloading report for scan #${id}`);
+}
+
+function rerunScan(id) {
+  if (confirm('Re-run this scan?')) {
+    alert(`Re-running scan #${id}...`);
+  }
+}
+
+function stopScan(id) {
+  if (confirm('Stop this scan?')) {
+    alert(`Stopping scan #${id}...`);
+  }
+}
+
+function scheduleScan() {
+  alert('Opening scan scheduler...');
+}
+
+// Filters
+document.getElementById('statusFilter').addEventListener('change', (e) => {
+  alert(`Filtering by status: ${e.target.value}`);
+});
+
+document.getElementById('typeFilter').addEventListener('change', (e) => {
+  alert(`Filtering by type: ${e.target.value}`);
+});
+</script>
+</body>
+</html>

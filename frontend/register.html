@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account — NEXUS Security Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#f8fafc;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem}
+.container{max-width:420px;width:100%}
+.card{background:white;border:1px solid#e2e8f0;border-radius:16px;padding:2.5rem;box-shadow:0 4px 6px rgba(0,0,0,.05)}
+.logo{text-align:center;margin-bottom:2rem}
+.logo i{font-size:3rem;color:#4f46e5;margin-bottom:.75rem}
+.logo h1{font-size:1.75rem;font-weight:700;color:#1e293b}
+.logo p{color:#64748b;font-size:.9rem;margin-top:.25rem}
+.plan-box{background:#f0f9ff;border:1px solid#bfdbfe;border-radius:8px;padding:1rem;margin-bottom:1.5rem;text-align:center}
+.plan-box strong{color:#1e293b;display:block;margin-bottom:.25rem}
+.plan-box p{color:#64748b;font-size:.85rem}
+.form-group{margin-bottom:1.25rem}
+label{display:block;font-size:.9rem;font-weight:600;color:#334155;margin-bottom:.5rem}
+input{width:100%;background:#f8fafc;border:1px solid#e2e8f0;border-radius:8px;padding:.75rem 1rem;font-size:.95rem;color:#1e293b;transition:all .2s}
+input:focus{outline:none;border-color:#4f46e5;background:white;box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+.btn{width:100%;background:#4f46e5;color:white;border:none;padding:.85rem;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .2s;margin-top:.5rem}
+.btn:hover{background:#4338ca}
+.btn:disabled{background:#cbd5e0;cursor:not-allowed}
+.error{background:#fee2e2;border:1px solid#fca5a5;color:#991b1b;padding:1rem;border-radius:8px;margin-bottom:1.25rem;display:none;font-size:.9rem}
+.success{background:#d1fae5;border:1px solid#6ee7b7;color:#065f46;padding:1rem;border-radius:8px;margin-bottom:1.25rem;display:none;font-size:.9rem}
+.links{text-align:center;margin-top:1.5rem;color:#64748b;font-size:.9rem}
+.links a{color:#4f46e5;font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="logo">
+      <i class="fa-solid fa-shield-halved"></i>
+      <h1>NEXUS</h1>
+      <p>Start your free trial</p>
+    </div>
+    
+    <div class="plan-box">
+      <strong>Free Forever</strong>
+      <p>3 domains • Unlimited scans • Professional reports</p>
+    </div>
+    
+    <div class="error" id="error"></div>
+    <div class="success" id="success"></div>
+    
+    <form id="registerForm">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="name" placeholder="John Doe" required>
+      </div>
+      
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="you@company.com" required>
+      </div>
+      
+      <div class="form-group">
+        <label>Password (8+ characters)</label>
+        <input type="password" id="password" placeholder="Create password" minlength="8" required>
+      </div>
+      
+      <button type="submit" class="btn" id="regBtn">Create Account</button>
+    </form>
+    
+    <div class="links">
+      <p>Already have an account? <a href="login.html">Sign in</a></p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('regBtn');
+  const err = document.getElementById('error');
+  const succ = document.getElementById('success');
+  
+  err.style.display = 'none';
+  succ.style.display = 'none';
+  
+  if (!email || !password || password.length < 8) {
+    err.textContent = 'Valid email and password (8+ chars) required';
+    err.style.display = 'block';
+    return;
+  }
+  
+  btn.disabled = true;
+  btn.textContent = 'Creating account...';
+  
+  try {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, name })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Registration failed');
+    }
+    
+    localStorage.setItem('nexus_token', data.token);
+    localStorage.setItem('nexus_user', JSON.stringify(data.user));
+    
+    succ.textContent = 'Account created! Redirecting...';
+    succ.style.display = 'block';
+    
+    setTimeout(() => {
+      window.location.href = 'dashboard.html';
+    }, 1000);
+    
+  } catch(e) {
+    err.textContent = e.message;
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings - NEXUS</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-primary: #0a0e27;
+  --bg-card: #1a1f3a;
+  --accent-blue: #00d4ff;
+  --accent-purple: #8b5cf6;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --border: rgba(148, 163, 184, 0.1);
+  --success: #10b981;
+  --danger: #ef4444;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: linear-gradient(135deg, #0a0e27 0%, #111632 50%, #0a0e27 100%);
+  color: var(--text-primary);
+}
+
+.app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+
+.sidebar {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+  padding: 2rem 0;
+  position: fixed;
+  width: 280px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.logo {
+  padding: 0 1.5rem;
+  margin-bottom: 3rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.logo-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-section { margin-bottom: 2rem; }
+.nav-title {
+  padding: 0 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.nav-item {
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.nav-item.active { background: rgba(0, 212, 255, 0.1); color: var(--accent-blue); }
+.nav-item i { width: 24px; text-align: center; }
+
+.main { margin-left: 280px; padding: 2rem; }
+
+.header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.header h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, var(--text-primary), var(--accent-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.settings-container {
+  max-width: 900px;
+}
+
+.settings-section {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-header i {
+  font-size: 1.5rem;
+  color: var(--accent-blue);
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.setting-item {
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.setting-item:last-child { border-bottom: none; }
+
+.setting-info { flex: 1; }
+
+.setting-label {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.setting-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.form-input, .form-select {
+  padding: 0.75rem 1rem;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  width: 250px;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+.toggle {
+  width: 52px;
+  height: 28px;
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 14px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.toggle.active { background: var(--accent-blue); }
+
+.toggle-thumb {
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: left 0.3s;
+}
+
+.toggle.active .toggle-thumb { left: 27px; }
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: white;
+}
+
+.btn-primary:hover { transform: translateY(-2px); }
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--danger), #dc2626);
+  color: white;
+}
+
+.btn-secondary {
+  background: rgba(26, 31, 58, 0.8);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.avatar-upload {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.danger-zone {
+  border: 2px solid var(--danger);
+  border-radius: 16px;
+  padding: 2rem;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.danger-zone-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.danger-zone-header i {
+  font-size: 1.5rem;
+  color: var(--danger);
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+      <span class="logo-text">NEXUS</span>
+    </div>
+    
+    <nav>
+      <div class="nav-section">
+        <div class="nav-title">Overview</div>
+        <a href="dashboard-ultimate.html" class="nav-item">
+          <i class="fas fa-th-large"></i>
+          <span>Dashboard</span>
+        </a>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-title">Security</div>
+        <a href="assets.html" class="nav-item">
+          <i class="fas fa-server"></i>
+          <span>Assets</span>
+        </a>
+        <a href="vulnerabilities.html" class="nav-item">
+          <i class="fas fa-bug"></i>
+          <span>Vulnerabilities</span>
+        </a>
+        <a href="scans.html" class="nav-item">
+          <i class="fas fa-search"></i>
+          <span>Security Scans</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">Management</div>
+        <a href="#" class="nav-item active">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <h1>Settings</h1>
+      <p style="color: var(--text-secondary);">Manage your account and application preferences</p>
+    </header>
+
+    <div class="settings-container">
+      <!-- Profile Settings -->
+      <div class="settings-section">
+        <div class="section-header">
+          <i class="fas fa-user"></i>
+          <h2 class="section-title">Profile Settings</h2>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Profile Picture</div>
+            <div class="setting-description">Upload a profile picture</div>
+          </div>
+          <div class="avatar-upload">
+            <div class="avatar" id="avatar">A</div>
+            <button class="btn btn-secondary">
+              <i class="fas fa-upload"></i>
+              Upload
+            </button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Full Name</div>
+            <div class="setting-description">Your display name</div>
+          </div>
+          <input type="text" class="form-input" id="fullName" value="Admin User">
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Email Address</div>
+            <div class="setting-description">Your email for notifications</div>
+          </div>
+          <input type="email" class="form-input" id="email" value="admin@company.com">
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Time Zone</div>
+            <div class="setting-description">Set your local timezone</div>
+          </div>
+          <select class="form-select">
+            <option>(GMT-08:00) Pacific Time</option>
+            <option>(GMT-05:00) Eastern Time</option>
+            <option selected>(GMT+00:00) UTC</option>
+            <option>(GMT+01:00) Central European Time</option>
+          </select>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+          <button class="btn btn-primary" onclick="saveProfile()">
+            <i class="fas fa-save"></i>
+            Save Changes
+          </button>
+        </div>
+      </div>
+
+      <!-- Security Settings -->
+      <div class="settings-section">
+        <div class="section-header">
+          <i class="fas fa-lock"></i>
+          <h2 class="section-title">Security</h2>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Change Password</div>
+            <div class="setting-description">Update your password regularly</div>
+          </div>
+          <button class="btn btn-secondary" onclick="changePassword()">
+            <i class="fas fa-key"></i>
+            Change Password
+          </button>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Two-Factor Authentication</div>
+            <div class="setting-description">Add an extra layer of security</div>
+          </div>
+          <div class="toggle" onclick="toggleTwoFactor(this)">
+            <div class="toggle-thumb"></div>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Active Sessions</div>
+            <div class="setting-description">Manage your active login sessions</div>
+          </div>
+          <button class="btn btn-secondary">
+            <i class="fas fa-list"></i>
+            View Sessions
+          </button>
+        </div>
+      </div>
+
+      <!-- Notification Settings -->
+      <div class="settings-section">
+        <div class="section-header">
+          <i class="fas fa-bell"></i>
+          <h2 class="section-title">Notifications</h2>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Email Notifications</div>
+            <div class="setting-description">Receive security alerts via email</div>
+          </div>
+          <div class="toggle active" onclick="toggleSetting(this)">
+            <div class="toggle-thumb"></div>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Critical Vulnerabilities</div>
+            <div class="setting-description">Instant alerts for critical issues</div>
+          </div>
+          <div class="toggle active" onclick="toggleSetting(this)">
+            <div class="toggle-thumb"></div>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Weekly Reports</div>
+            <div class="setting-description">Receive weekly security summaries</div>
+          </div>
+          <div class="toggle active" onclick="toggleSetting(this)">
+            <div class="toggle-thumb"></div>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Scan Completion</div>
+            <div class="setting-description">Notify when scans are complete</div>
+          </div>
+          <div class="toggle" onclick="toggleSetting(this)">
+            <div class="toggle-thumb"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- API Settings -->
+      <div class="settings-section">
+        <div class="section-header">
+          <i class="fas fa-code"></i>
+          <h2 class="section-title">API Access</h2>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">API Key</div>
+            <div class="setting-description">Your API authentication key</div>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="password" class="form-input" value="sk_live_xxxxxxxxxxxxxxxxxx" readonly>
+            <button class="btn btn-secondary" onclick="showApiKey()">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Generate New Key</div>
+            <div class="setting-description">Create a new API key (old key will be revoked)</div>
+          </div>
+          <button class="btn btn-secondary" onclick="regenerateKey()">
+            <i class="fas fa-refresh"></i>
+            Regenerate
+          </button>
+        </div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="danger-zone">
+        <div class="danger-zone-header">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h2 class="section-title">Danger Zone</h2>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Export All Data</div>
+            <div class="setting-description">Download all your data in JSON format</div>
+          </div>
+          <button class="btn btn-secondary" onclick="exportData()">
+            <i class="fas fa-download"></i>
+            Export Data
+          </button>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Delete Account</div>
+            <div class="setting-description" style="color: var(--danger);">Permanently delete your account and all data</div>
+          </div>
+          <button class="btn btn-danger" onclick="deleteAccount()">
+            <i class="fas fa-trash"></i>
+            Delete Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/';
+
+const user = JSON.parse(localStorage.getItem('user') || '{}');
+document.getElementById('avatar').textContent = (user.name || user.email || 'U').charAt(0).toUpperCase();
+document.getElementById('fullName').value = user.name || '';
+document.getElementById('email').value = user.email || '';
+
+function toggleSetting(element) {
+  element.classList.toggle('active');
+}
+
+function toggleTwoFactor(element) {
+  element.classList.toggle('active');
+  const enabled = element.classList.contains('active');
+  alert(enabled ? '2FA enabled!' : '2FA disabled');
+}
+
+function saveProfile() {
+  alert('Profile saved successfully!');
+}
+
+function changePassword() {
+  const newPassword = prompt('Enter new password:');
+  if (newPassword) {
+    alert('Password changed successfully!');
+  }
+}
+
+function showApiKey() {
+  alert('API Key: sk_live_abc123xyz456def789');
+}
+
+function regenerateKey() {
+  if (confirm('Generate new API key? The old key will stop working.')) {
+    alert('New API key generated: sk_live_new123abc456xyz789');
+  }
+}
+
+function exportData() {
+  alert('Exporting your data...');
+}
+
+function deleteAccount() {
+  const confirmed = confirm('Are you ABSOLUTELY sure? This cannot be undone!');
+  if (confirmed) {
+    const doubleCheck = prompt('Type DELETE to confirm:');
+    if (doubleCheck === 'DELETE') {
+      alert('Account deletion initiated');
+      localStorage.clear();
+      window.location.href = '/';
+    }
+  }
+}
+</script>
+</body>
+</html>

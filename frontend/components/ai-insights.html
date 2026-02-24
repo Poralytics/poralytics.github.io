@@ -1,0 +1,147 @@
+<!-- AI INSIGHTS COMPONENT -->
+<div class="ai-insights-widget">
+  <style>
+    .ai-insights-widget { background: linear-gradient(135deg, #1a2332, #243447); border: 2px solid rgba(59,130,246,0.3); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; }
+    .ai-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .ai-title { font-size: 1.25rem; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 0.5rem; }
+    .ai-badge { background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700; }
+    .ai-content { display: grid; gap: 1rem; }
+    .ai-section { background: rgba(15,23,42,0.5); border-radius: 12px; padding: 1rem; border-left: 3px solid #6366f1; }
+    .ai-section-title { font-size: 0.9rem; font-weight: 600; color: #cbd5e1; margin-bottom: 0.75rem; }
+    .ai-text { color: #f8fafc; line-height: 1.6; font-size: 0.95rem; }
+    .ai-bullets { list-style: none; margin-top: 0.5rem; }
+    .ai-bullets li { padding: 0.5rem 0; color: #cbd5e1; display: flex; align-items: start; gap: 0.5rem; }
+    .ai-bullets li:before { content: '→'; color: #6366f1; font-weight: bold; }
+    .ai-action-btn { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 0.5rem; }
+    .ai-loading { text-align: center; padding: 2rem; color: #94a3b8; }
+    .prediction-card { background: rgba(99,102,241,0.1); border-radius: 8px; padding: 0.75rem; margin-bottom: 0.5rem; }
+    .prediction-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; }
+    .prediction-type { font-weight: 600; color: #f8fafc; }
+    .prediction-prob { font-size: 0.85rem; color: #6366f1; font-weight: 700; }
+    .prediction-risk { font-size: 0.85rem; color: #94a3b8; }
+  </style>
+
+  <div class="ai-header">
+    <div class="ai-title">
+      <span>🤖</span>
+      <span>AI Security Insights</span>
+      <span class="ai-badge">POWERED BY GPT-4</span>
+    </div>
+  </div>
+
+  <div class="ai-content" id="aiContent">
+    <div class="ai-loading">Loading AI insights...</div>
+  </div>
+</div>
+
+<script>
+async function loadAIInsights() {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const container = document.getElementById('aiContent');
+    container.innerHTML = '<div class="ai-loading">🤖 AI is analyzing your security posture...</div>';
+
+    // Charger le résumé exécutif AI
+    const summaryRes = await fetch('/api/ai/executive-summary', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!summaryRes.ok) {
+      // Feature AI pas disponible dans le plan
+      container.innerHTML = `
+        <div class="ai-section">
+          <div class="ai-text" style="text-align:center;">
+            🔒 AI-powered features available in Professional plan and above
+            <br><br>
+            <a href="/pricing.html" style="color:#6366f1;font-weight:600;">Upgrade to unlock AI insights</a>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const summaryData = await summaryRes.json();
+    const summary = summaryData.summary;
+
+    // Charger les prédictions
+    const predRes = await fetch('/api/ai/predictions', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const predData = await predRes.json();
+    const predictions = predData.predictions;
+
+    // Afficher les insights
+    container.innerHTML = `
+      <!-- Executive Summary -->
+      <div class="ai-section">
+        <div class="ai-section-title">📊 AI Executive Summary</div>
+        <div class="ai-text" style="font-weight:600;margin-bottom:0.5rem;">${summary.headline}</div>
+        <ul class="ai-bullets">
+          ${summary.key_points.map(point => `<li>${point}</li>`).join('')}
+        </ul>
+      </div>
+
+      <!-- Top Priority -->
+      <div class="ai-section" style="border-left-color:#dc2626;">
+        <div class="ai-section-title">🎯 AI-Recommended Priority Action</div>
+        <div class="ai-text">${summary.top_priority}</div>
+      </div>
+
+      <!-- Predictions -->
+      <div class="ai-section">
+        <div class="ai-section-title">🔮 AI Vulnerability Predictions (Next 30 Days)</div>
+        ${predictions.predictions.slice(0, 3).map(pred => `
+          <div class="prediction-card">
+            <div class="prediction-header">
+              <span class="prediction-type">${pred.vulnerability_type}</span>
+              <span class="prediction-prob">${pred.probability}% probability</span>
+            </div>
+            <div class="prediction-risk">Risk area: ${pred.risk_area}</div>
+          </div>
+        `).join('')}
+        <div style="margin-top:0.75rem;font-size:0.85rem;color:#94a3b8;">
+          Confidence: ${predictions.confidence_level}
+        </div>
+      </div>
+
+      <!-- Preventive Actions -->
+      <div class="ai-section">
+        <div class="ai-section-title">🛡️ AI-Recommended Preventive Actions</div>
+        <ul class="ai-bullets">
+          ${predictions.preventive_actions.map(action => `<li>${action}</li>`).join('')}
+        </ul>
+      </div>
+
+      <!-- Positive Note -->
+      ${summary.positive_note ? `
+        <div class="ai-section" style="border-left-color:#10b981;">
+          <div class="ai-section-title">✅ Positive Progress</div>
+          <div class="ai-text">${summary.positive_note}</div>
+        </div>
+      ` : ''}
+    `;
+
+  } catch (error) {
+    console.error('Error loading AI insights:', error);
+    document.getElementById('aiContent').innerHTML = `
+      <div class="ai-section">
+        <div class="ai-text" style="color:#ea580c;">
+          Unable to load AI insights. Please try again later.
+        </div>
+      </div>
+    `;
+  }
+}
+
+// Load on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadAIInsights);
+} else {
+  loadAIInsights();
+}
+
+// Refresh every 5 minutes
+setInterval(loadAIInsights, 5 * 60 * 1000);
+</script>

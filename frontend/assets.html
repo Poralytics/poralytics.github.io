@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assets - NEXUS</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-primary: #0a0e27;
+  --bg-card: #1a1f3a;
+  --accent-blue: #00d4ff;
+  --accent-purple: #8b5cf6;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --border: rgba(148, 163, 184, 0.1);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: linear-gradient(135deg, #0a0e27 0%, #111632 50%, #0a0e27 100%);
+  color: var(--text-primary);
+}
+
+.app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+
+.sidebar {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+  padding: 2rem 0;
+  position: fixed;
+  width: 280px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.logo {
+  padding: 0 1.5rem;
+  margin-bottom: 3rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.logo-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-section { margin-bottom: 2rem; }
+.nav-title {
+  padding: 0 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.nav-item {
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.3s;
+  cursor: pointer;
+  position: relative;
+}
+
+.nav-item.active {
+  background: rgba(0, 212, 255, 0.1);
+  color: var(--accent-blue);
+}
+
+.nav-item i { width: 24px; text-align: center; }
+
+.main { margin-left: 280px; padding: 2rem; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.header h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, var(--text-primary), var(--accent-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: white;
+}
+
+.btn-primary:hover { transform: translateY(-2px); }
+
+.assets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.asset-card {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.75rem;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.asset-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+}
+
+.asset-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.asset-header {
+  display: flex;
+  align-items: start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.asset-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: rgba(0, 212, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  color: var(--accent-blue);
+  flex-shrink: 0;
+}
+
+.asset-info { flex: 1; }
+
+.asset-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.asset-url {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.asset-url a {
+  color: var(--accent-blue);
+  text-decoration: none;
+}
+
+.asset-url a:hover { text-decoration: underline; }
+
+.asset-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-active { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+.status-inactive { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+.status-paused { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+
+.asset-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.metric {
+  text-align: center;
+}
+
+.metric-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  display: block;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+}
+
+.asset-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.action-btn {
+  padding: 0.625rem;
+  border-radius: 8px;
+  background: rgba(26, 31, 58, 0.8);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.action-btn:hover {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  transform: translateY(-2px);
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 14, 39, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.active { display: flex; }
+
+.modal-content {
+  background: rgba(26, 31, 58, 0.95);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 600px;
+  width: 90%;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-title { font-size: 1.5rem; font-weight: 700; }
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--danger);
+}
+
+.form-group { margin-bottom: 1.5rem; }
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 0.875rem;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+
+.btn-secondary {
+  background: rgba(26, 31, 58, 0.8);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+      <span class="logo-text">NEXUS</span>
+    </div>
+    
+    <nav>
+      <div class="nav-section">
+        <div class="nav-title">Overview</div>
+        <a href="dashboard-ultimate.html" class="nav-item">
+          <i class="fas fa-th-large"></i>
+          <span>Dashboard</span>
+        </a>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-title">Security</div>
+        <a href="#" class="nav-item active">
+          <i class="fas fa-server"></i>
+          <span>Assets</span>
+        </a>
+        <a href="vulnerabilities.html" class="nav-item">
+          <i class="fas fa-bug"></i>
+          <span>Vulnerabilities</span>
+        </a>
+        <a href="scans.html" class="nav-item">
+          <i class="fas fa-search"></i>
+          <span>Security Scans</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <div>
+        <h1>Assets</h1>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem;">Manage your monitored assets and domains</p>
+      </div>
+      <button class="btn btn-primary" onclick="openAddAssetModal()">
+        <i class="fas fa-plus"></i>
+        Add New Asset
+      </button>
+    </header>
+
+    <div class="assets-grid">
+      <!-- Asset 1 -->
+      <div class="asset-card">
+        <div class="asset-header">
+          <div class="asset-icon">
+            <i class="fas fa-globe"></i>
+          </div>
+          <div class="asset-info">
+            <div class="asset-name">Production API</div>
+            <div class="asset-url">
+              <i class="fas fa-link"></i>
+              <a href="https://api.company.com" target="_blank">api.company.com</a>
+            </div>
+          </div>
+          <span class="asset-status status-active">Active</span>
+        </div>
+
+        <div class="asset-metrics">
+          <div class="metric">
+            <span class="metric-value" style="color: var(--danger);">8</span>
+            <span class="metric-label">Critical</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" style="color: var(--warning);">12</span>
+            <span class="metric-label">High</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" style="color: var(--success);">156</span>
+            <span class="metric-label">Scans</span>
+          </div>
+        </div>
+
+        <div class="asset-actions">
+          <button class="action-btn" onclick="scanAsset(1)">
+            <i class="fas fa-search"></i>
+            Scan
+          </button>
+          <button class="action-btn" onclick="editAsset(1)">
+            <i class="fas fa-edit"></i>
+            Edit
+          </button>
+          <button class="action-btn" onclick="deleteAsset(1)">
+            <i class="fas fa-trash"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <!-- Asset 2 -->
+      <div class="asset-card">
+        <div class="asset-header">
+          <div class="asset-icon">
+            <i class="fas fa-desktop"></i>
+          </div>
+          <div class="asset-info">
+            <div class="asset-name">Web Application</div>
+            <div class="asset-url">
+              <i class="fas fa-link"></i>
+              <a href="https://app.company.com" target="_blank">app.company.com</a>
+            </div>
+          </div>
+          <span class="asset-status status-active">Active</span>
+        </div>
+
+        <div class="asset-metrics">
+          <div class="metric">
+            <span class="metric-value" style="color: var(--danger);">3</span>
+            <span class="metric-label">Critical</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" style="color: var(--warning);">7</span>
+            <span class="metric-label">High</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" style="color: var(--success);">142</span>
+            <span class="metric-label">Scans</span>
+          </div>
+        </div>
+
+        <div class="asset-actions">
+          <button class="action-btn" onclick="scanAsset(2)">
+            <i class="fas fa-search"></i>
+            Scan
+          </button>
+          <button class="action-btn" onclick="editAsset(2)">
+            <i class="fas fa-edit"></i>
+            Edit
+          </button>
+          <button class="action-btn" onclick="deleteAsset(2)">
+            <i class="fas fa-trash"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <!-- Asset 3 -->
+      <div class="asset-card">
+        <div class="asset-header">
+          <div class="asset-icon">
+            <i class="fas fa-building"></i>
+          </div>
+          <div class="asset-info">
+            <div class="asset-name">Corporate Website</div>
+            <div class="asset-url">
+              <i class="fas fa-link"></i>
+              <a href="https://www.company.com" target="_blank">www.company.com</a>
+            </div>
+          </div>
+          <span class="asset-status status-active">Active</span>
+        </div>
+
+        <div class="asset-metrics">
+          <div class="metric">
+            <span class="metric-value" style="color: var(--success);">0</span>
+            <span class="metric-label">Critical</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" style="color: var(--warning);">2</span>
+            <span class="metric-label">High</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" style="color: var(--success);">98</span>
+            <span class="metric-label">Scans</span>
+          </div>
+        </div>
+
+        <div class="asset-actions">
+          <button class="action-btn" onclick="scanAsset(3)">
+            <i class="fas fa-search"></i>
+            Scan
+          </button>
+          <button class="action-btn" onclick="editAsset(3)">
+            <i class="fas fa-edit"></i>
+            Edit
+          </button>
+          <button class="action-btn" onclick="deleteAsset(3)">
+            <i class="fas fa-trash"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <!-- Add New Card -->
+      <div class="asset-card" style="cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 300px; border: 2px dashed var(--border);" onclick="openAddAssetModal()">
+        <div style="text-align: center;">
+          <i class="fas fa-plus" style="font-size: 3rem; color: var(--accent-blue); margin-bottom: 1rem;"></i>
+          <div style="font-size: 1.125rem; font-weight: 600;">Add New Asset</div>
+          <div style="color: var(--text-secondary); margin-top: 0.5rem;">Click to add a new domain or asset</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add Asset Modal -->
+<div class="modal" id="addAssetModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Add New Asset</h2>
+      <button class="modal-close" onclick="closeAddAssetModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <form id="addAssetForm">
+      <div class="form-group">
+        <label class="form-label">Asset Name</label>
+        <input type="text" class="form-input" placeholder="e.g., Production API" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Domain / URL</label>
+        <input type="url" class="form-input" placeholder="https://api.example.com" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Asset Type</label>
+        <select class="form-select" required>
+          <option value="">Choose type...</option>
+          <option value="api">API</option>
+          <option value="web">Web Application</option>
+          <option value="website">Website</option>
+          <option value="mobile">Mobile Backend</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Monitoring Frequency</label>
+        <select class="form-select">
+          <option value="hourly">Hourly</option>
+          <option value="daily" selected>Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeAddAssetModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-plus"></i>
+          Add Asset
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/';
+
+function openAddAssetModal() {
+  document.getElementById('addAssetModal').classList.add('active');
+}
+
+function closeAddAssetModal() {
+  document.getElementById('addAssetModal').classList.remove('active');
+}
+
+document.getElementById('addAssetForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  alert('Asset added successfully!');
+  closeAddAssetModal();
+  setTimeout(() => location.reload(), 500);
+});
+
+function scanAsset(id) {
+  if (confirm(`Start security scan for asset #${id}?`)) {
+    alert(`Scan started for asset #${id}`);
+  }
+}
+
+function editAsset(id) {
+  alert(`Edit asset #${id}`);
+}
+
+function deleteAsset(id) {
+  if (confirm(`Delete asset #${id}? This action cannot be undone.`)) {
+    alert(`Asset #${id} deleted`);
+  }
+}
+</script>
+</body>
+</html>

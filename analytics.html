@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analytics - NEXUS</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg-primary: #0a0e27;
+  --bg-card: #1a1f3a;
+  --accent-blue: #00d4ff;
+  --accent-purple: #8b5cf6;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --border: rgba(148, 163, 184, 0.1);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: linear-gradient(135deg, #0a0e27 0%, #111632 50%, #0a0e27 100%);
+  color: var(--text-primary);
+}
+
+.app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+
+.sidebar {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+  padding: 2rem 0;
+  position: fixed;
+  width: 280px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.logo {
+  padding: 0 1.5rem;
+  margin-bottom: 3rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.logo-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-section { margin-bottom: 2rem; }
+.nav-title {
+  padding: 0 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.nav-item {
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.nav-item.active { background: rgba(0, 212, 255, 0.1); color: var(--accent-blue); }
+.nav-item i { width: 24px; text-align: center; }
+
+.main { margin-left: 280px; padding: 2rem; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.header h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, var(--text-primary), var(--accent-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.time-filters {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filter-btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 600;
+}
+
+.filter-btn:hover, .filter-btn.active {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: white;
+  border-color: transparent;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.metric-card {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.75rem;
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.metric-trend {
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+}
+
+.trend-up { color: var(--success); }
+.trend-down { color: var(--danger); }
+
+.metric-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.metric-comparison {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.chart-card {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.chart-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chart-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(26, 31, 58, 0.8);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.3s;
+}
+
+.btn-icon:hover {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.table-container {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table thead tr {
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table th {
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.data-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: all 0.3s;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(0, 212, 255, 0.05);
+}
+
+.data-table td {
+  padding: 1.25rem 1rem;
+}
+
+.severity-badge {
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.severity-critical { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+.severity-high { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+.severity-medium { background: rgba(0, 212, 255, 0.15); color: var(--accent-blue); }
+.severity-low { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+      <span class="logo-text">NEXUS</span>
+    </div>
+    
+    <nav>
+      <div class="nav-section">
+        <div class="nav-title">Overview</div>
+        <a href="dashboard-ultimate.html" class="nav-item">
+          <i class="fas fa-th-large"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item active">
+          <i class="fas fa-chart-line"></i>
+          <span>Analytics</span>
+        </a>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-title">Security</div>
+        <a href="assets.html" class="nav-item">
+          <i class="fas fa-server"></i>
+          <span>Assets</span>
+        </a>
+        <a href="vulnerabilities.html" class="nav-item">
+          <i class="fas fa-bug"></i>
+          <span>Vulnerabilities</span>
+        </a>
+        <a href="scans.html" class="nav-item">
+          <i class="fas fa-search"></i>
+          <span>Security Scans</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">Management</div>
+        <a href="reports.html" class="nav-item">
+          <i class="fas fa-file-alt"></i>
+          <span>Reports</span>
+        </a>
+        <a href="team.html" class="nav-item">
+          <i class="fas fa-users"></i>
+          <span>Team</span>
+        </a>
+        <a href="settings.html" class="nav-item">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <div>
+        <h1>Analytics</h1>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem;">Advanced security metrics and trends</p>
+      </div>
+      <div class="time-filters">
+        <button class="filter-btn">7D</button>
+        <button class="filter-btn active">30D</button>
+        <button class="filter-btn">90D</button>
+        <button class="filter-btn">1Y</button>
+      </div>
+    </header>
+
+    <!-- Key Metrics -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Total Scans</span>
+          <span class="metric-trend trend-up">
+            <i class="fas fa-arrow-up"></i>
+            +15%
+          </span>
+        </div>
+        <div class="metric-value">1,284</div>
+        <div class="metric-comparison">vs. 1,116 last period</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Avg. Security Score</span>
+          <span class="metric-trend trend-up">
+            <i class="fas fa-arrow-up"></i>
+            +8%
+          </span>
+        </div>
+        <div class="metric-value">867</div>
+        <div class="metric-comparison">vs. 803 last period</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Vulnerabilities Fixed</span>
+          <span class="metric-trend trend-up">
+            <i class="fas fa-arrow-up"></i>
+            +42%
+          </span>
+        </div>
+        <div class="metric-value">89</div>
+        <div class="metric-comparison">vs. 63 last period</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Mean Time to Remediate</span>
+          <span class="metric-trend trend-down">
+            <i class="fas fa-arrow-down"></i>
+            -23%
+          </span>
+        </div>
+        <div class="metric-value">2.4d</div>
+        <div class="metric-comparison">vs. 3.1d last period</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <i class="fas fa-chart-line"></i>
+            Security Score Trend
+          </div>
+          <div class="chart-actions">
+            <button class="btn-icon" title="Download"><i class="fas fa-download"></i></button>
+            <button class="btn-icon" title="Share"><i class="fas fa-share"></i></button>
+          </div>
+        </div>
+        <canvas id="scoreChart" height="80"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <i class="fas fa-chart-pie"></i>
+            Vulnerability Types
+          </div>
+        </div>
+        <canvas id="vulnTypesChart" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- More Charts -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <i class="fas fa-chart-bar"></i>
+            Scan Activity
+          </div>
+        </div>
+        <canvas id="scanActivityChart" height="80"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <i class="fas fa-tachometer-alt"></i>
+            Remediation Rate
+          </div>
+        </div>
+        <canvas id="remediationChart" height="80"></canvas>
+      </div>
+    </div>
+
+    <!-- Top Assets Table -->
+    <div class="table-container">
+      <div class="chart-header">
+        <div class="chart-title">
+          <i class="fas fa-list"></i>
+          Most Vulnerable Assets
+        </div>
+        <div class="chart-actions">
+          <button class="btn-icon" onclick="exportTable()"><i class="fas fa-download"></i></button>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Asset</th>
+            <th>Critical</th>
+            <th>High</th>
+            <th>Medium</th>
+            <th>Low</th>
+            <th>Total</th>
+            <th>Last Scan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>api.company.com</td>
+            <td><span class="severity-badge severity-critical">8</span></td>
+            <td><span class="severity-badge severity-high">12</span></td>
+            <td>24</td>
+            <td>36</td>
+            <td><strong>80</strong></td>
+            <td>2 hours ago</td>
+          </tr>
+          <tr>
+            <td>app.company.com</td>
+            <td><span class="severity-badge severity-critical">3</span></td>
+            <td><span class="severity-badge severity-high">7</span></td>
+            <td>15</td>
+            <td>28</td>
+            <td><strong>53</strong></td>
+            <td>5 hours ago</td>
+          </tr>
+          <tr>
+            <td>www.company.com</td>
+            <td>0</td>
+            <td><span class="severity-badge severity-high">2</span></td>
+            <td><span class="severity-badge severity-medium">8</span></td>
+            <td>18</td>
+            <td><strong>28</strong></td>
+            <td>1 day ago</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/';
+
+// Security Score Trend
+const scoreCtx = document.getElementById('scoreChart');
+new Chart(scoreCtx, {
+  type: 'line',
+  data: {
+    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+    datasets: [{
+      label: 'Security Score',
+      data: [803, 825, 847, 867],
+      borderColor: '#00d4ff',
+      backgroundColor: 'rgba(0, 212, 255, 0.1)',
+      tension: 0.4,
+      fill: true,
+      borderWidth: 3
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#94a3b8' } }
+    },
+    scales: {
+      y: {
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { color: '#94a3b8' },
+        min: 700,
+        max: 900
+      },
+      x: {
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { color: '#94a3b8' }
+      }
+    }
+  }
+});
+
+// Vulnerability Types
+const vulnTypesCtx = document.getElementById('vulnTypesChart');
+new Chart(vulnTypesCtx, {
+  type: 'doughnut',
+  data: {
+    labels: ['SQL Injection', 'XSS', 'CSRF', 'Misconfiguration', 'Other'],
+    datasets: [{
+      data: [23, 18, 12, 28, 19],
+      backgroundColor: ['#ef4444', '#f59e0b', '#8b5cf6', '#00d4ff', '#10b981']
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { color: '#94a3b8', padding: 15 }
+      }
+    }
+  }
+});
+
+// Scan Activity
+const scanActivityCtx = document.getElementById('scanActivityChart');
+new Chart(scanActivityCtx, {
+  type: 'bar',
+  data: {
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    datasets: [{
+      label: 'Scans',
+      data: [42, 38, 45, 52, 48, 24, 18],
+      backgroundColor: 'rgba(0, 212, 255, 0.6)',
+      borderColor: '#00d4ff',
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#94a3b8' } }
+    },
+    scales: {
+      y: {
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { color: '#94a3b8' }
+      },
+      x: {
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { color: '#94a3b8' }
+      }
+    }
+  }
+});
+
+// Remediation Rate
+const remediationCtx = document.getElementById('remediationChart');
+new Chart(remediationCtx, {
+  type: 'line',
+  data: {
+    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+    datasets: [{
+      label: 'Fixed',
+      data: [15, 22, 25, 27],
+      borderColor: '#10b981',
+      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+      tension: 0.4,
+      fill: true
+    }, {
+      label: 'Discovered',
+      data: [28, 24, 31, 23],
+      borderColor: '#ef4444',
+      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+      tension: 0.4,
+      fill: true
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#94a3b8' } }
+    },
+    scales: {
+      y: {
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { color: '#94a3b8' }
+      },
+      x: {
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { color: '#94a3b8' }
+      }
+    }
+  }
+});
+
+function exportTable() {
+  alert('Exporting table as CSV...');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!-- TIMELINE COMPONENT -->
+<div class="timeline-widget">
+  <style>
+    .timeline-widget { background: #1a2332; border: 2px solid rgba(148,163,184,0.15); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; }
+    .timeline-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .timeline-title { font-size: 1.25rem; font-weight: 700; color: #f8fafc; }
+    .timeline-container { position: relative; padding-left: 2rem; }
+    .timeline-line { position: absolute; left: 0.5rem; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, #3b82f6, rgba(59,130,246,0.2)); }
+    .timeline-item { position: relative; margin-bottom: 1.5rem; padding-left: 1.5rem; }
+    .timeline-dot { position: absolute; left: -1.5rem; top: 0.25rem; width: 12px; height: 12px; border-radius: 50%; border: 3px solid #1a2332; }
+    .timeline-dot.critical { background: #dc2626; }
+    .timeline-dot.high { background: #ea580c; }
+    .timeline-dot.success { background: #10b981; }
+    .timeline-dot.info { background: #3b82f6; }
+    .timeline-content { background: #243447; border-radius: 8px; padding: 1rem; }
+    .timeline-time { font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.25rem; }
+    .timeline-message { color: #f8fafc; font-weight: 600; margin-bottom: 0.5rem; }
+    .timeline-domain { font-size: 0.85rem; color: #cbd5e1; }
+    .timeline-stats { display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.8rem; }
+    .stat-item { display: flex; align-items: center; gap: 0.25rem; }
+  </style>
+
+  <div class="timeline-header">
+    <div class="timeline-title">Recent Activity</div>
+  </div>
+
+  <div class="timeline-container">
+    <div class="timeline-line"></div>
+    <div id="timelineItems">
+      <!-- Populated by JavaScript -->
+    </div>
+  </div>
+</div>
+
+<script>
+async function loadTimeline() {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const res = await fetch('/api/visualizations/timeline?days=7', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+
+    const container = document.getElementById('timelineItems');
+    container.innerHTML = '';
+
+    data.timeline.forEach(event => {
+      const item = document.createElement('div');
+      item.className = 'timeline-item';
+      
+      const date = new Date(event.timestamp * 1000);
+      const timeAgo = getTimeAgo(event.timestamp);
+      
+      item.innerHTML = `
+        <div class="timeline-dot ${event.severity}"></div>
+        <div class="timeline-content">
+          <div class="timeline-time">${timeAgo}</div>
+          <div class="timeline-message">${event.message}</div>
+          <div class="timeline-domain">${event.domain}</div>
+          ${event.vulns_found > 0 ? `
+            <div class="timeline-stats">
+              ${event.breakdown.critical > 0 ? `<div class="stat-item" style="color:#dc2626"><span>●</span>${event.breakdown.critical} Critical</div>` : ''}
+              ${event.breakdown.high > 0 ? `<div class="stat-item" style="color:#ea580c"><span>●</span>${event.breakdown.high} High</div>` : ''}
+              ${event.breakdown.medium > 0 ? `<div class="stat-item" style="color:#f59e0b"><span>●</span>${event.breakdown.medium} Medium</div>` : ''}
+            </div>
+          ` : ''}
+        </div>
+      `;
+      
+      container.appendChild(item);
+    });
+  } catch (error) {
+    console.error('Error loading timeline:', error);
+  }
+}
+
+function getTimeAgo(timestamp) {
+  const now = Math.floor(Date.now() / 1000);
+  const diff = now - timestamp;
+  
+  if (diff < 60) return 'Just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+  return `${Math.floor(diff / 86400)} days ago`;
+}
+
+// Load on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadTimeline);
+} else {
+  loadTimeline();
+}
+</script>

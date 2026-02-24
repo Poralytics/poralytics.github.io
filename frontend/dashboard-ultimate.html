@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS - Security Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-primary: #0a0e27;
+  --bg-secondary: #111632;
+  --bg-card: #1a1f3a;
+  --accent-blue: #00d4ff;
+  --accent-purple: #8b5cf6;
+  --accent-green: #10b981;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --border: rgba(148, 163, 184, 0.1);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+@keyframes countUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: linear-gradient(135deg, #0a0e27 0%, #111632 50%, #0a0e27 100%);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+.app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+  padding: 2rem 0;
+  position: fixed;
+  width: 280px;
+  height: 100vh;
+  overflow-y: auto;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+}
+
+.logo {
+  padding: 0 1.5rem;
+  margin-bottom: 3rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  animation: fadeInUp 0.6s ease;
+}
+
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 8px 24px rgba(0, 212, 255, 0.3);
+}
+
+.logo-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 0.05em;
+}
+
+.nav-section {
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.6s ease;
+  animation-fill-mode: both;
+}
+
+.nav-section:nth-child(2) { animation-delay: 0.1s; }
+.nav-section:nth-child(3) { animation-delay: 0.2s; }
+.nav-section:nth-child(4) { animation-delay: 0.3s; }
+
+.nav-title {
+  padding: 0 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+}
+
+.nav-item {
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  font-weight: 500;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple));
+  transition: height 0.3s ease;
+}
+
+.nav-item:hover::before, .nav-item.active::before { height: 70%; }
+.nav-item:hover { background: rgba(0, 212, 255, 0.05); color: var(--text-primary); transform: translateX(4px); }
+.nav-item.active { background: rgba(0, 212, 255, 0.1); color: var(--accent-blue); }
+.nav-item i { width: 24px; text-align: center; font-size: 1.125rem; }
+
+.nav-badge {
+  margin-left: auto;
+  background: var(--danger);
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-weight: 700;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Main Content */
+.main {
+  margin-left: 280px;
+  padding: 2rem;
+  animation: fadeIn 0.8s ease;
+}
+
+/* Quick Actions Bar */
+.quick-actions {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.quick-btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.quick-btn:hover {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  transform: translateY(-2px);
+}
+
+.quick-btn i { font-size: 1rem; }
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-left h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(90deg, var(--text-primary), var(--accent-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-left p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 20px;
+  font-size: 0.875rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.header-right {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.search {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 320px;
+  transition: all 0.3s ease;
+}
+
+.search:focus-within {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 24px rgba(0, 212, 255, 0.2);
+}
+
+.search i { color: var(--text-secondary); }
+
+.search input {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  outline: none;
+  flex: 1;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+}
+
+.search input::placeholder { color: var(--text-secondary); }
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.icon-btn:hover {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  transform: translateY(-2px);
+}
+
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: linear-gradient(135deg, var(--danger), #dc2626);
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-btn:hover {
+  border-color: var(--accent-blue);
+  transform: translateY(-2px);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* Stats Grid */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.75rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.6s ease;
+  animation-fill-mode: both;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+.stat-card:hover::before { opacity: 1; }
+
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.stat-icon.blue { background: rgba(0, 212, 255, 0.1); color: var(--accent-blue); box-shadow: 0 8px 24px rgba(0, 212, 255, 0.2); }
+.stat-icon.green { background: rgba(16, 185, 129, 0.1); color: var(--success); box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2); }
+.stat-icon.red { background: rgba(239, 68, 68, 0.1); color: var(--danger); box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2); }
+.stat-icon.purple { background: rgba(139, 92, 246, 0.1); color: var(--accent-purple); box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2); }
+
+.stat-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, var(--text-primary), var(--accent-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: countUp 0.6s ease;
+}
+
+.stat-change {
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.stat-change.up { color: var(--success); }
+.stat-change.down { color: var(--danger); }
+
+.stat-sparkline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  opacity: 0.3;
+}
+
+/* Charts */
+.charts {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.8s ease 0.5s;
+  animation-fill-mode: both;
+}
+
+.chart-card {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.chart-card:hover { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.chart-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chart-title i { color: var(--accent-blue); }
+
+.chart-filters {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filter-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.filter-btn:hover, .filter-btn.active {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: white;
+  border-color: transparent;
+  transform: scale(1.05);
+}
+
+/* Threats */
+.threats {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.8s ease 0.6s;
+  animation-fill-mode: both;
+}
+
+.threat-item {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 3px solid;
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.threat-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateX(4px);
+}
+
+.threat-item.critical { border-color: var(--danger); }
+.threat-item.high { border-color: var(--warning); }
+.threat-item.medium { border-color: var(--accent-blue); }
+
+.threat-severity {
+  font-size: 0.75rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: 8px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.severity-critical { background: rgba(239, 68, 68, 0.15); color: var(--danger); box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+.severity-high { background: rgba(245, 158, 11, 0.15); color: var(--warning); box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
+.severity-medium { background: rgba(0, 212, 255, 0.15); color: var(--accent-blue); box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
+
+.threat-content { flex: 1; }
+
+.threat-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.threat-meta {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.threat-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: white;
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 212, 255, 0.4);
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--danger), #dc2626);
+  color: white;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+}
+
+/* Activity */
+.activity {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  animation: fadeInUp 0.8s ease 0.7s;
+  animation-fill-mode: both;
+}
+
+.activity-item {
+  padding: 1.25rem;
+  display: flex;
+  gap: 1.25rem;
+  border-bottom: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.activity-item:hover { background: rgba(255, 255, 255, 0.02); }
+.activity-item:last-child { border-bottom: none; }
+
+.activity-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.125rem;
+}
+
+.activity-icon.blue { background: rgba(0, 212, 255, 0.1); color: var(--accent-blue); }
+.activity-icon.green { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+.activity-icon.red { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+.activity-content { flex: 1; }
+
+.activity-text {
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.activity-time {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Notification Toast */
+.toast-container {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.toast {
+  background: rgba(26, 31, 58, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 320px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  animation: slideInRight 0.3s ease;
+}
+
+.toast-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+}
+
+.toast-icon.success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+.toast-icon.danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+.toast-icon.info { background: rgba(59, 130, 246, 0.1); color: var(--info); }
+
+.toast-content { flex: 1; }
+
+.toast-title {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.toast-message {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.toast-close {
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.toast-close:hover { color: var(--text-primary); }
+
+/* Loading Overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 14, 39, 0.8);
+  backdrop-filter: blur(10px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-overlay.active { display: flex; }
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(0, 212, 255, 0.1);
+  border-top-color: var(--accent-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .charts { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { position: static; width: 100%; height: auto; }
+  .main { margin-left: 0; }
+  .stats { grid-template-columns: 1fr; }
+  .header { flex-direction: column; gap: 1rem; align-items: flex-start; }
+  .search { min-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+      <span class="logo-text">NEXUS</span>
+    </div>
+    
+    <nav>
+      <div class="nav-section">
+        <div class="nav-title">Overview</div>
+        <a href="#" class="nav-item active">
+          <i class="fas fa-th-large"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-fire"></i>
+          <span>Threat Intelligence</span>
+          <span class="nav-badge">12</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-chart-line"></i>
+          <span>Analytics</span>
+        </a>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-title">Security</div>
+        <a href="#" class="nav-item">
+          <i class="fas fa-server"></i>
+          <span>Asset Inventory</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-bug"></i>
+          <span>Vulnerabilities</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-search"></i>
+          <span>Security Scans</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-tools"></i>
+          <span>Remediation</span>
+        </a>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-title">Compliance</div>
+        <a href="#" class="nav-item">
+          <i class="fas fa-check-circle"></i>
+          <span>ISO 27001</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-shield"></i>
+          <span>SOC 2</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-credit-card"></i>
+          <span>PCI-DSS</span>
+        </a>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-title">Management</div>
+        <a href="#" class="nav-item">
+          <i class="fas fa-file-alt"></i>
+          <span>Reports</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-users"></i>
+          <span>Team</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <div class="header-left">
+        <h1>Security Operations</h1>
+        <p>
+          <span class="status-indicator">
+            <span class="status-dot"></span>
+            All Systems Operational
+          </span>
+          · Last updated: <span id="lastUpdate">Just now</span>
+        </p>
+      </div>
+      <div class="header-right">
+        <div class="search">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Search assets, vulnerabilities, threats..." id="searchInput">
+        </div>
+        <button class="icon-btn" onclick="showNotifications()">
+          <i class="fas fa-bell"></i>
+          <span class="notification-badge">3</span>
+        </button>
+        <button class="icon-btn" onclick="exportDashboard()">
+          <i class="fas fa-download"></i>
+        </button>
+        <button class="icon-btn" onclick="refreshDashboard()">
+          <i class="fas fa-sync-alt" id="refreshIcon"></i>
+        </button>
+        <div class="user-btn" onclick="showUserMenu()">
+          <div class="user-avatar" id="userAvatar">A</div>
+          <span id="userName">Admin</span>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+      </div>
+    </header>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button class="quick-btn" onclick="runQuickScan()">
+        <i class="fas fa-bolt"></i>
+        Quick Scan
+      </button>
+      <button class="quick-btn" onclick="generateReport()">
+        <i class="fas fa-file-pdf"></i>
+        Export Report
+      </button>
+      <button class="quick-btn" onclick="addAsset()">
+        <i class="fas fa-plus"></i>
+        Add Asset
+      </button>
+      <button class="quick-btn" onclick="viewAlerts()">
+        <i class="fas fa-bell"></i>
+        View Alerts
+      </button>
+      <button class="quick-btn" onclick="scheduleScan()">
+        <i class="fas fa-calendar"></i>
+        Schedule Scan
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Security Score</span>
+          <div class="stat-icon blue">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+        </div>
+        <div class="stat-value" id="securityScore">850</div>
+        <div class="stat-change up">
+          <i class="fas fa-arrow-up"></i>
+          <span>+12% from last month</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Active Assets</span>
+          <div class="stat-icon green">
+            <i class="fas fa-server"></i>
+          </div>
+        </div>
+        <div class="stat-value" id="assetsCount">48</div>
+        <div class="stat-change up">
+          <i class="fas fa-arrow-up"></i>
+          <span>+2 this week</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Critical Issues</span>
+          <div class="stat-icon red">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+        </div>
+        <div class="stat-value" id="criticalCount">8</div>
+        <div class="stat-change down">
+          <i class="fas fa-arrow-down"></i>
+          <span>3 new today</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Compliance</span>
+          <div class="stat-icon purple">
+            <i class="fas fa-check-double"></i>
+          </div>
+        </div>
+        <div class="stat-value">92%</div>
+        <div class="stat-change up">
+          <i class="fas fa-arrow-up"></i>
+          <span>+5% improvement</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <i class="fas fa-chart-area"></i>
+            Vulnerability Trends
+          </div>
+          <div class="chart-filters">
+            <button class="filter-btn active" onclick="changeTimeRange('7d')">7D</button>
+            <button class="filter-btn" onclick="changeTimeRange('30d')">30D</button>
+            <button class="filter-btn" onclick="changeTimeRange('90d')">90D</button>
+          </div>
+        </div>
+        <canvas id="vulnChart" height="80"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <i class="fas fa-chart-pie"></i>
+            Severity Distribution
+          </div>
+        </div>
+        <canvas id="sevChart" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Threats -->
+    <div class="threats">
+      <div class="chart-header">
+        <div class="chart-title">
+          <i class="fas fa-fire"></i>
+          Active Threats
+        </div>
+        <button class="btn btn-secondary" onclick="filterThreats()">
+          <i class="fas fa-filter"></i>
+          Filter
+        </button>
+      </div>
+
+      <div class="threat-item critical">
+        <div class="threat-severity severity-critical">CRITICAL</div>
+        <div class="threat-content">
+          <div class="threat-title">SQL Injection Vulnerability Detected</div>
+          <div class="threat-meta">
+            <span><i class="fas fa-server"></i> api.company.com</span>
+            <span><i class="fas fa-clock"></i> 2 hours ago</span>
+            <span><i class="fas fa-chart-line"></i> CVSS 9.8</span>
+          </div>
+        </div>
+        <button class="btn btn-danger" onclick="remediateThreat('SQL Injection')">
+          <i class="fas fa-tools"></i>
+          Remediate
+        </button>
+      </div>
+
+      <div class="threat-item high">
+        <div class="threat-severity severity-high">HIGH</div>
+        <div class="threat-content">
+          <div class="threat-title">Cross-Site Scripting (XSS) Detected</div>
+          <div class="threat-meta">
+            <span><i class="fas fa-server"></i> app.company.com</span>
+            <span><i class="fas fa-clock"></i> 5 hours ago</span>
+            <span><i class="fas fa-chart-line"></i> CVSS 7.5</span>
+          </div>
+        </div>
+        <button class="btn btn-secondary" onclick="reviewThreat('XSS')">
+          <i class="fas fa-eye"></i>
+          Review
+        </button>
+      </div>
+
+      <div class="threat-item medium">
+        <div class="threat-severity severity-medium">MEDIUM</div>
+        <div class="threat-content">
+          <div class="threat-title">Missing Security Headers</div>
+          <div class="threat-meta">
+            <span><i class="fas fa-server"></i> www.company.com</span>
+            <span><i class="fas fa-clock"></i> 1 day ago</span>
+            <span><i class="fas fa-chart-line"></i> CVSS 5.0</span>
+          </div>
+        </div>
+        <button class="btn btn-secondary" onclick="viewThreatDetails('Headers')">
+          <i class="fas fa-info-circle"></i>
+          Details
+        </button>
+      </div>
+    </div>
+
+    <!-- Activity -->
+    <div class="activity">
+      <div class="chart-header">
+        <div class="chart-title">
+          <i class="fas fa-history"></i>
+          Recent Activity
+        </div>
+      </div>
+
+      <div class="activity-item">
+        <div class="activity-icon blue">
+          <i class="fas fa-play-circle"></i>
+        </div>
+        <div class="activity-content">
+          <div class="activity-text">Security scan completed on api.company.com</div>
+          <div class="activity-time">2 minutes ago</div>
+        </div>
+      </div>
+
+      <div class="activity-item">
+        <div class="activity-icon red">
+          <i class="fas fa-bug"></i>
+        </div>
+        <div class="activity-content">
+          <div class="activity-text">Critical vulnerability detected - SQL Injection</div>
+          <div class="activity-time">1 hour ago</div>
+        </div>
+      </div>
+
+      <div class="activity-item">
+        <div class="activity-icon green">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="activity-content">
+          <div class="activity-text">Vulnerability remediated - XSS on login page</div>
+          <div class="activity-time">3 hours ago</div>
+        </div>
+      </div>
+
+      <div class="activity-item">
+        <div class="activity-icon blue">
+          <i class="fas fa-user-plus"></i>
+        </div>
+        <div class="activity-content">
+          <div class="activity-text">New team member added - John Doe</div>
+          <div class="activity-time">5 hours ago</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// Auth check
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/';
+
+const user = JSON.parse(localStorage.getItem('user') || '{}');
+const userName = user.name || user.email || 'User';
+document.getElementById('userName').textContent = userName;
+document.getElementById('userAvatar').textContent = userName.charAt(0).toUpperCase();
+
+// Toast System
+function showToast(title, message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <div class="toast-icon ${type}">
+      <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'}"></i>
+    </div>
+    <div class="toast-content">
+      <div class="toast-title">${title}</div>
+      <div class="toast-message">${message}</div>
+    </div>
+    <div class="toast-close" onclick="this.parentElement.remove()">
+      <i class="fas fa-times"></i>
+    </div>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 5000);
+}
+
+// Loading
+function showLoading() {
+  document.getElementById('loadingOverlay').classList.add('active');
+}
+
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('active');
+}
+
+// Quick Actions
+function runQuickScan() {
+  showLoading();
+  showToast('Quick Scan Started', 'Scanning all assets...', 'info');
+  setTimeout(() => {
+    hideLoading();
+    showToast('Scan Complete', 'No new vulnerabilities detected', 'success');
+  }, 2000);
+}
+
+function generateReport() {
+  showToast('Generating Report', 'PDF report will be downloaded shortly', 'info');
+  setTimeout(() => {
+    showToast('Report Ready', 'Download started', 'success');
+  }, 1500);
+}
+
+function addAsset() {
+  showToast('Add Asset', 'Opening asset creation form...', 'info');
+}
+
+function viewAlerts() {
+  showToast('Alerts', 'Showing 3 active alerts', 'info');
+}
+
+function scheduleScan() {
+  showToast('Schedule Scan', 'Opening scheduler...', 'info');
+}
+
+// Dashboard Actions
+function showNotifications() {
+  showToast('Notifications', 'You have 3 new notifications', 'info');
+}
+
+function exportDashboard() {
+  showToast('Export Dashboard', 'Exporting data...', 'info');
+  setTimeout(() => {
+    showToast('Export Complete', 'Data exported successfully', 'success');
+  }, 1500);
+}
+
+function refreshDashboard() {
+  const icon = document.getElementById('refreshIcon');
+  icon.style.animation = 'spin 1s linear';
+  showLoading();
+  
+  setTimeout(() => {
+    hideLoading();
+    icon.style.animation = '';
+    showToast('Dashboard Refreshed', 'All data updated', 'success');
+    updateLastUpdate();
+    loadMetrics();
+  }, 1500);
+}
+
+function showUserMenu() {
+  showToast('User Menu', 'Profile, Settings, Logout', 'info');
+}
+
+// Threat Actions
+function remediateThreat(type) {
+  showLoading();
+  showToast('Remediation Started', `Starting ${type} fix...`, 'info');
+  setTimeout(() => {
+    hideLoading();
+    showToast('Remediation Complete', `${type} vulnerability fixed`, 'success');
+  }, 2000);
+}
+
+function reviewThreat(type) {
+  showToast('Review Threat', `Opening ${type} details...`, 'info');
+}
+
+function viewThreatDetails(type) {
+  showToast('Threat Details', `Showing ${type} information...`, 'info');
+}
+
+function filterThreats() {
+  showToast('Filter Threats', 'Opening filter options...', 'info');
+}
+
+// Time Range
+function changeTimeRange(range) {
+  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  showToast('Time Range Changed', `Showing ${range.toUpperCase()} data`, 'info');
+}
+
+// Update timestamp
+function updateLastUpdate() {
+  document.getElementById('lastUpdate').textContent = 'Just now';
+}
+
+setInterval(() => {
+  const elem = document.getElementById('lastUpdate');
+  if (elem.textContent === 'Just now') {
+    elem.textContent = '1 minute ago';
+  }
+}, 60000);
+
+// Charts
+const vulnCtx = document.getElementById('vulnChart');
+new Chart(vulnCtx, {
+  type: 'line',
+  data: {
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    datasets: [{
+      label: 'Critical',
+      data: [12, 19, 15, 17, 14, 12, 8],
+      borderColor: '#ef4444',
+      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+      tension: 0.4,
+      borderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6
+    }, {
+      label: 'High',
+      data: [8, 12, 10, 14, 11, 9, 7],
+      borderColor: '#f59e0b',
+      backgroundColor: 'rgba(245, 158, 11, 0.1)',
+      tension: 0.4,
+      borderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6
+    }, {
+      label: 'Medium',
+      data: [5, 7, 6, 8, 7, 6, 5],
+      borderColor: '#00d4ff',
+      backgroundColor: 'rgba(0, 212, 255, 0.1)',
+      tension: 0.4,
+      borderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        labels: {
+          color: '#94a3b8',
+          font: { family: 'DM Sans', size: 12, weight: '600' }
+        }
+      }
+    },
+    scales: {
+      y: {
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { color: '#94a3b8', font: { family: 'DM Sans' } }
+      },
+      x: {
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { color: '#94a3b8', font: { family: 'DM Sans' } }
+      }
+    }
+  }
+});
+
+const sevCtx = document.getElementById('sevChart');
+new Chart(sevCtx, {
+  type: 'doughnut',
+  data: {
+    labels: ['Critical', 'High', 'Medium', 'Low'],
+    datasets: [{
+      data: [8, 12, 24, 36],
+      backgroundColor: ['#ef4444', '#f59e0b', '#00d4ff', '#10b981'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#94a3b8',
+          font: { family: 'DM Sans', size: 12, weight: '600' },
+          padding: 15
+        }
+      }
+    }
+  }
+});
+
+// Load metrics
+async function loadMetrics() {
+  try {
+    const res = await fetch('/api/dashboard/metrics', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      document.getElementById('securityScore').textContent = data.securityScore || 850;
+      document.getElementById('assetsCount').textContent = data.domainsCount || 48;
+      document.getElementById('criticalCount').textContent = data.vulnerabilitiesCount || 8;
+    }
+  } catch (e) {
+    console.log('Using demo data');
+  }
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey) {
+    switch(e.key) {
+      case 'k':
+        e.preventDefault();
+        document.getElementById('searchInput').focus();
+        break;
+      case 'r':
+        e.preventDefault();
+        refreshDashboard();
+        break;
+    }
+  }
+});
+
+// Initial load
+loadMetrics();
+showToast('Welcome Back!', 'Dashboard loaded successfully', 'success');
+</script>
+</body>
+</html>

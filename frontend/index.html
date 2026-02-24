@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — Professional Security Scanner</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0F172A;color:#F1F5F9;line-height:1.6}
+:root{--primary:#6366F1;--danger:#EF4444;--success:#10B981;--warning:#F59E0B}
+.nav{position:fixed;top:0;width:100%;background:rgba(15,23,42,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.08);z-index:100;padding:0 2rem}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,#6366F1,#8B5CF6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links a{color:#94A3B8;text-decoration:none;margin-left:2rem;font-size:.9rem;transition:color .2s}
+.nav-links a:hover{color:#F1F5F9}
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.4rem;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none;border:none}
+.btn-primary{background:var(--primary);color:white}.btn-primary:hover{background:#4F46E5;transform:translateY(-1px)}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.2);color:#F1F5F9}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:6rem 2rem 4rem;background:radial-gradient(ellipse at 50% 0,rgba(99,102,241,.15),transparent 70%)}
+.hero h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;line-height:1.1;margin-bottom:1.5rem}
+.hero h1 span{background:linear-gradient(135deg,#6366F1,#EC4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:1.2rem;color:#94A3B8;max-width:600px;margin:0 auto 2.5rem}
+.hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#A5B4FC;padding:.3rem .8rem;border-radius:20px;font-size:.8rem;margin-bottom:1.5rem}
+.stats-bar{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:2rem;max-width:700px;margin:3rem auto 0;display:flex;gap:2rem;justify-content:center;flex-wrap:wrap}
+.stat{text-align:center}.stat-num{font-size:2rem;font-weight:800;color:var(--primary)}.stat-label{font-size:.8rem;color:#64748B;text-transform:uppercase;letter-spacing:.05em}
+.section{padding:5rem 2rem;max-width:1200px;margin:0 auto}
+.section-title{font-size:2rem;font-weight:800;text-align:center;margin-bottom:3rem}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem}
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.8rem;transition:all .3s}
+.card:hover{border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.05);transform:translateY(-4px)}
+.card-icon{font-size:2rem;margin-bottom:1rem}
+.card h3{font-size:1.1rem;font-weight:700;margin-bottom:.5rem}
+.card p{color:#64748B;font-size:.9rem}
+.scanners-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.75rem;margin-top:2rem}
+.scanner-tag{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);padding:.5rem 1rem;border-radius:8px;font-size:.8rem;text-align:center;color:#A5B4FC}
+.cta{text-align:center;padding:6rem 2rem;background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(236,72,153,.05))}
+.cta h2{font-size:2.5rem;font-weight:800;margin-bottom:1rem}
+.footer{padding:3rem 2rem;border-top:1px solid rgba(255,255,255,.08);text-align:center;color:#475569;font-size:.85rem}
+@media(max-width:600px){.stats-bar{flex-direction:column;gap:1rem}.hero h1{font-size:2.2rem}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="logo">🛡️ NEXUS</div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#scanners">Scanners</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="login.html" class="btn btn-outline" style="margin-left:1rem">Sign In</a>
+      <a href="register.html" class="btn btn-primary" style="margin-left:.5rem">Start Free</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div>
+    <div class="badge">🔥 v2.1.0 — 23 Scanners — Production Ready</div>
+    <h1>The <span>Professional</span><br>Security Scanner</h1>
+    <p>Detect SQL injection, XSS, SSRF, Command Injection and 19 more vulnerability types. Real scans, real results, actionable reports.</p>
+    <div class="hero-btns">
+      <a href="register.html" class="btn btn-primary">Start Scanning Free →</a>
+      <a href="login.html" class="btn btn-outline">Sign In</a>
+    </div>
+    <div class="stats-bar">
+      <div class="stat"><div class="stat-num">23</div><div class="stat-label">Scanners</div></div>
+      <div class="stat"><div class="stat-num">OWASP</div><div class="stat-label">Top 10 Coverage</div></div>
+      <div class="stat"><div class="stat-num">60s</div><div class="stat-label">Parallel Scan</div></div>
+      <div class="stat"><div class="stat-num">PDF</div><div class="stat-label">Reports</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <h2 class="section-title">Everything you need</h2>
+  <div class="grid-3">
+    <div class="card"><div class="card-icon">⚡</div><h3>Parallel Scanning</h3><p>All 23 scanners run simultaneously using Promise.allSettled() for maximum speed.</p></div>
+    <div class="card"><div class="card-icon">🛡️</div><h3>SSRF Protected</h3><p>SecureHttpClient blocks all private IP ranges. The scanner can't be turned against you.</p></div>
+    <div class="card"><div class="card-icon">📊</div><h3>PDF Reports</h3><p>Professional multi-page reports with executive summary, CVSS scores, and remediation guidance.</p></div>
+    <div class="card"><div class="card-icon">🔄</div><h3>Real-time Updates</h3><p>WebSocket connection delivers live scan progress directly to your dashboard.</p></div>
+    <div class="card"><div class="card-icon">💳</div><h3>Stripe Billing</h3><p>Production-ready billing with idempotent webhooks, circuit breakers, and auto-retry.</p></div>
+    <div class="card"><div class="card-icon">🏗️</div><h3>Circuit Breakers</h3><p>Automatic failure detection and recovery. The platform stays up even when dependencies fail.</p></div>
+  </div>
+</section>
+
+<section class="section" id="scanners">
+  <h2 class="section-title">23 Real Scanners</h2>
+  <p style="text-align:center;color:#64748B;margin-top:-2rem;margin-bottom:2rem">Every scanner implements real detection techniques — not simulations</p>
+  <div class="scanners-grid">
+    <div class="scanner-tag">🔴 SQL Injection</div><div class="scanner-tag">🔴 XSS</div>
+    <div class="scanner-tag">🔴 SSRF</div><div class="scanner-tag">🔴 Command Injection</div>
+    <div class="scanner-tag">🔴 XXE</div><div class="scanner-tag">🟠 CSRF</div>
+    <div class="scanner-tag">🟠 CORS</div><div class="scanner-tag">🟠 Authentication</div>
+    <div class="scanner-tag">🟠 Access Control</div><div class="scanner-tag">🟠 Open Redirect</div>
+    <div class="scanner-tag">🟡 Clickjacking</div><div class="scanner-tag">🟡 SSL/TLS</div>
+    <div class="scanner-tag">🟡 Headers</div><div class="scanner-tag">🟡 Info Disclosure</div>
+    <div class="scanner-tag">🟡 Crypto</div><div class="scanner-tag">🟡 File Upload</div>
+    <div class="scanner-tag">🟢 API Security</div><div class="scanner-tag">🟢 Infrastructure</div>
+    <div class="scanner-tag">🟢 Components</div><div class="scanner-tag">🟢 Business Logic</div>
+    <div class="scanner-tag">🟢 Advanced SQL</div><div class="scanner-tag">🟢 Union SQLi</div>
+    <div class="scanner-tag">🟢 DOM XSS</div>
+  </div>
+</section>
+
+<section class="cta">
+  <h2>Ready to secure your apps?</h2>
+  <p style="color:#94A3B8;margin-bottom:2rem">Free tier includes 3 domains and unlimited scans</p>
+  <a href="register.html" class="btn btn-primary" style="font-size:1.1rem;padding:.8rem 2rem">Get Started Free →</a>
+</section>
+
+<footer class="footer">
+  <p>NEXUS Security Scanner v2.1.0 — Professional Web Application Security Testing</p>
+  <p style="margin-top:.5rem">Built with Node.js, SQLite, Express — <a href="https://owasp.org" target="_blank" style="color:var(--primary);text-decoration:none">OWASP Top 10</a> Compliant</p>
+</footer>
+</body>
+</html>

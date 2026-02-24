@@ -1,0 +1,99 @@
+<!-- RISK HEATMAP COMPONENT -->
+<div class="risk-heatmap-widget">
+  <style>
+    .risk-heatmap-widget { background: #1a2332; border: 2px solid rgba(148,163,184,0.15); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; }
+    .heatmap-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .heatmap-title { font-size: 1.25rem; font-weight: 700; color: #f8fafc; }
+    .heatmap-summary { font-size: 0.9rem; color: #cbd5e1; }
+    .heatmap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+    .heatmap-cell { background: #243447; border-radius: 12px; padding: 1rem; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; }
+    .heatmap-cell:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0,0,0,0.3); }
+    .heatmap-cell::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+    .heatmap-cell.critical::before { background: #dc2626; }
+    .heatmap-cell.high::before { background: #ea580c; }
+    .heatmap-cell.medium::before { background: #f59e0b; }
+    .heatmap-cell.low::before { background: #3b82f6; }
+    .heatmap-cell.minimal::before { background: #10b981; }
+    .cell-domain { font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cell-score { font-size: 1.5rem; font-weight: 900; margin-bottom: 0.25rem; }
+    .cell-vulns { font-size: 0.8rem; color: #94a3b8; }
+    .legend { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #cbd5e1; }
+    .legend-color { width: 16px; height: 16px; border-radius: 4px; }
+  </style>
+
+  <div class="heatmap-header">
+    <div>
+      <div class="heatmap-title">Risk Heatmap</div>
+      <div class="heatmap-summary" id="heatmapSummary">Loading...</div>
+    </div>
+  </div>
+
+  <div class="heatmap-grid" id="heatmapGrid">
+    <!-- Populated by JavaScript -->
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-color" style="background:#10b981"></div><span>Minimal Risk (900-1000)</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:#3b82f6"></div><span>Low Risk (750-899)</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:#f59e0b"></div><span>Medium Risk (500-749)</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:#ea580c"></div><span>High Risk (250-499)</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:#dc2626"></div><span>Critical (0-249)</span></div>
+  </div>
+</div>
+
+<script>
+async function loadHeatmap() {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const res = await fetch('/api/visualizations/heatmap', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+
+    // Update summary
+    document.getElementById('heatmapSummary').textContent = 
+      `${data.summary.total_domains} domains • ${data.summary.needs_immediate_attention} need attention • Avg score: ${data.summary.average_score}`;
+
+    // Render grid
+    const grid = document.getElementById('heatmapGrid');
+    grid.innerHTML = '';
+
+    data.domains.forEach(domain => {
+      const cell = document.createElement('div');
+      cell.className = `heatmap-cell ${getRiskClass(domain.score)}`;
+      cell.onclick = () => window.location.href = `/domain-details.html?id=${domain.domain_id}`;
+      
+      cell.innerHTML = `
+        <div class="cell-domain" title="${domain.domain_url}">${domain.domain_name}</div>
+        <div class="cell-score" style="color: ${domain.risk_color}">${domain.score}</div>
+        <div class="cell-vulns">${domain.total_vulnerabilities} vulnerabilities</div>
+      `;
+      
+      grid.appendChild(cell);
+    });
+  } catch (error) {
+    console.error('Error loading heatmap:', error);
+  }
+}
+
+function getRiskClass(score) {
+  if (score >= 900) return 'minimal';
+  if (score >= 750) return 'low';
+  if (score >= 500) return 'medium';
+  if (score >= 250) return 'high';
+  return 'critical';
+}
+
+// Load on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadHeatmap);
+} else {
+  loadHeatmap();
+}
+</script>
