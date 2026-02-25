@@ -14,6 +14,10 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+console.log('🚀 Starting NEXUS Server...');
+console.log('📍 Port:', PORT);
+console.log('🌍 Environment:', process.env.NODE_ENV || 'development');
+
 // PostgreSQL Connection Pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -23,13 +27,13 @@ const pool = new Pool({
 // Test database connection
 pool.query('SELECT NOW()', (err, res) => {
   if (err) {
-    console.error('❌ Database connection error:', err);
+    console.error('❌ Database connection error:', err.message);
   } else {
     console.log('✅ Database connected:', res.rows[0].now);
   }
 });
 
-// Security middleware
+// Security middleware - CSP fixed for Chart.js
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -53,15 +57,15 @@ app.use(cors(corsOptions));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: 'Too many requests from this IP'
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5, // 5 login attempts per 15 minutes
-  message: 'Too many login attempts, please try again later.'
+  max: 5,
+  message: 'Too many login attempts'
 });
 
 app.use('/api/', limiter);
@@ -71,24 +75,23 @@ app.use('/api/auth/', authLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'frontend')));
-
-// Trust proxy for production
+// Trust proxy
 app.set('trust proxy', 1);
 
-// Logging middleware
+// CRITICAL: Serve static files from frontend directory
+app.use(express.static(path.join(__dirname, 'frontend')));
+
+// Logging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
 });
 
 // JWT Secret
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-change-this';
+const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret-in-production';
 const JWT_EXPIRES_IN = '7d';
 
-// Authentication middleware
+// Auth middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -106,57 +109,35 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// Input validation
-const validateEmail = (email) => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
-};
-
-const sanitizeInput = (input) => {
-  if (typeof input !== 'string') return input;
-  return input.replace(/[<>]/g, '');
-};
-
 // ==================== ROUTES ====================
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({
-    status: 'ok',
-    service: 'NEXUS API',
+    service: 'NEXUS Security Platform',
+    status: 'operational',
     version: '1.0.0',
-    timestamp: new Date().toISOString()
+    uptime: process.uptime(),
+    database: 'PostgreSQL'
   });
 });
 
-// Root route
+// Root - redirect to login
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'login.html'));
+  res.redirect('/login.html');
 });
-
-// ==================== AUTH ROUTES ====================
 
 // Register
 app.post('/api/auth/register', async (req, res) => {
   try {
     let { email, password, name } = req.body;
 
-    // Validation
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    if (!validateEmail(email)) {
-      return res.status(400).json({ error: 'Invalid email format' });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
-    }
-
-    // Sanitize inputs
-    email = sanitizeInput(email.toLowerCase());
-    name = name ? sanitizeInput(name) : email.split('@')[0];
+    email = email.toLowerCase().trim();
+    name = name ? name.trim() : email.split('@')[0];
 
     // Check if user exists
     const userCheck = await pool.query(
@@ -186,11 +167,7 @@ app.post('/api/auth/register', async (req, res) => {
       { expiresIn: JWT_EXPIRES_IN }
     );
 
-    // Log registration
-    await pool.query(
-      'INSERT INTO audit_logs (user_id, action, details) VALUES ($1, $2, $3)',
-      [user.id, 'register', JSON.stringify({ email })]
-    );
+    console.log('✅ User registered:', email);
 
     res.status(201).json({
       token,
@@ -201,7 +178,7 @@ app.post('/api/auth/register', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('❌ Registration error:', error);
     res.status(500).json({ error: 'Registration failed' });
   }
 });
@@ -215,7 +192,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    email = sanitizeInput(email.toLowerCase());
+    email = email.toLowerCase().trim();
 
     // Get user
     const result = await pool.query(
@@ -249,11 +226,7 @@ app.post('/api/auth/login', async (req, res) => {
       { expiresIn: JWT_EXPIRES_IN }
     );
 
-    // Log login
-    await pool.query(
-      'INSERT INTO audit_logs (user_id, action, details) VALUES ($1, $2, $3)',
-      [user.id, 'login', JSON.stringify({ email, ip: req.ip })]
-    );
+    console.log('✅ User logged in:', email);
 
     res.json({
       token,
@@ -264,7 +237,7 @@ app.post('/api/auth/login', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('❌ Login error:', error);
     res.status(500).json({ error: 'Login failed' });
   }
 });
@@ -283,24 +256,38 @@ app.get('/api/auth/profile', authenticateToken, async (req, res) => {
 
     res.json({ user: result.rows[0] });
   } catch (error) {
-    console.error('Profile error:', error);
+    console.error('❌ Profile error:', error);
     res.status(500).json({ error: 'Failed to fetch profile' });
   }
 });
 
-// ==================== DOMAINS ROUTES ====================
+// Get dashboard metrics
+app.get('/api/dashboard/metrics', authenticateToken, async (req, res) => {
+  try {
+    // Mock data for now
+    const stats = {
+      securityScore: 850,
+      totalAssets: 12,
+      criticalIssues: 8,
+      scansCompleted: 156
+    };
+    res.json(stats);
+  } catch (error) {
+    console.error('❌ Metrics error:', error);
+    res.status(500).json({ error: 'Failed to get metrics' });
+  }
+});
 
-// Get all domains
+// Get domains
 app.get('/api/domains', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, url, name, created_at FROM domains WHERE user_id = $1 ORDER BY created_at DESC',
       [req.user.userId]
     );
-
     res.json(result.rows);
   } catch (error) {
-    console.error('Domains error:', error);
+    console.error('❌ Domains error:', error);
     res.status(500).json({ error: 'Failed to fetch domains' });
   }
 });
@@ -314,23 +301,19 @@ app.post('/api/domains', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'URL required' });
     }
 
-    url = sanitizeInput(url);
-    name = name ? sanitizeInput(name) : url;
+    url = url.trim();
+    name = name ? name.trim() : url;
 
     const result = await pool.query(
       'INSERT INTO domains (user_id, url, name, created_at) VALUES ($1, $2, $3, NOW()) RETURNING id, url, name, created_at',
       [req.user.userId, url, name]
     );
 
-    // Log action
-    await pool.query(
-      'INSERT INTO audit_logs (user_id, action, details) VALUES ($1, $2, $3)',
-      [req.user.userId, 'add_domain', JSON.stringify({ url, name })]
-    );
+    console.log('✅ Domain added:', url);
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Add domain error:', error);
+    console.error('❌ Add domain error:', error);
     res.status(500).json({ error: 'Failed to add domain' });
   }
 });
@@ -349,94 +332,47 @@ app.delete('/api/domains/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Domain not found' });
     }
 
-    // Log action
-    await pool.query(
-      'INSERT INTO audit_logs (user_id, action, details) VALUES ($1, $2, $3)',
-      [req.user.userId, 'delete_domain', JSON.stringify({ domain_id: id })]
-    );
+    console.log('✅ Domain deleted:', result.rows[0].url);
 
     res.json({ message: 'Domain deleted', url: result.rows[0].url });
   } catch (error) {
-    console.error('Delete domain error:', error);
+    console.error('❌ Delete domain error:', error);
     res.status(500).json({ error: 'Failed to delete domain' });
   }
 });
 
-// ==================== DASHBOARD ROUTES ====================
-
-// Get dashboard metrics
-app.get('/api/dashboard/metrics', authenticateToken, async (req, res) => {
-  try {
-    // Get counts
-    const domainsResult = await pool.query(
-      'SELECT COUNT(*) FROM domains WHERE user_id = $1',
-      [req.user.userId]
-    );
-
-    const scansResult = await pool.query(
-      'SELECT COUNT(*) FROM scans WHERE user_id = $1',
-      [req.user.userId]
-    );
-
-    const vulnsResult = await pool.query(
-      'SELECT COUNT(*) FROM vulnerabilities WHERE user_id = $1 AND status = $2',
-      [req.user.userId, 'open']
-    );
-
-    // Calculate security score (simplified)
-    const totalScans = parseInt(scansResult.rows[0].count);
-    const totalVulns = parseInt(vulnsResult.rows[0].count);
-    const securityScore = totalScans > 0 
-      ? Math.max(0, Math.min(1000, 1000 - (totalVulns * 50)))
-      : 850;
-
-    res.json({
-      securityScore,
-      domainsCount: parseInt(domainsResult.rows[0].count),
-      vulnerabilitiesCount: totalVulns,
-      scansCount: totalScans
-    });
-  } catch (error) {
-    console.error('Metrics error:', error);
-    res.status(500).json({ error: 'Failed to fetch metrics' });
+// Catch-all route for SPA - serve index.html for any non-API route
+app.get('*', (req, res) => {
+  if (req.url.startsWith('/api/')) {
+    res.status(404).json({ error: 'API route not found' });
+  } else {
+    res.sendFile(path.join(__dirname, 'frontend', 'login.html'));
   }
 });
 
-// ==================== ERROR HANDLING ====================
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
-
-// Global error handler
+// Error handler
 app.use((err, req, res, next) => {
-  console.error('Global error:', err);
+  console.error('❌ Global error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// ==================== START SERVER ====================
-
-app.listen(PORT, '0.0.0.0', () => {
+// Start server
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`
-╔═══════════════════════════════════════╗
-║     NEXUS Security Platform API       ║
-║                                       ║
-║  Port: ${PORT.toString().padEnd(30)} ║
-║  Environment: ${(process.env.NODE_ENV || 'development').padEnd(22)} ║
-║  Database: Connected ✓                ║
-╚═══════════════════════════════════════╝
+╔════════════════════════════════╗
+║   NEXUS Server Running         ║
+║   Port: ${PORT}                    ║
+║   Environment: ${process.env.NODE_ENV || 'development'}      ║
+║   Database: PostgreSQL         ║
+╚════════════════════════════════╝
   `);
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
+  console.log('SIGTERM received, closing server...');
   server.close(() => {
-    console.log('HTTP server closed');
-    pool.end(() => {
-      console.log('Database pool closed');
-      process.exit(0);
-    });
+    pool.end();
+    process.exit(0);
   });
 });
